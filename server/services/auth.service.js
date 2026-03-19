@@ -153,23 +153,28 @@ class AuthService {
     }
     user.password = newPassword;
     user.refreshTokens = [];
-    user.passwordChangedAt = new Date(); 
+    user.passwordChangedAt = new Date();
     await user.save();
 
     // invalid cache
     await redisClient.del(`user:${userId}`);
 
-    logger.info(`User ${user.email} changed password at ${new Date().toISOString()}`);
+    logger.info(
+      `User ${user.email} changed password at ${new Date().toISOString()}`,
+    );
 
     // send notification email
-    await emailService.sendPasswordChangeNotification(user.email, user.profile.firstName);
+    await emailService.sendPasswordChangeNotification(
+      user.email,
+      user.profile.firstName,
+    );
 
     logger.info(`Password change notification sent to ${user.email}`);
   }
   async forgotPassword(email) {
     const user = await User.findOne({ email });
-    if(!user) return; // do not reveal if email exists
-    
+    if (!user) return; // do not reveal if email exists
+
     // generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenHash = crypto
@@ -181,71 +186,83 @@ class AuthService {
     await user.save();
 
     // send reset email
-    await emailService.sendPasswordResetEmail(user.email, user.profile.firstName, resetToken);
+    await emailService.sendPasswordResetEmail(
+      user.email,
+      user.profile.firstName,
+      resetToken,
+    );
 
     logger.info(`Password reset email requested to ${user.email}`);
   }
 
-    async resetPassword(token, newPassword) {
-        const resetTokenHash = crypto
-          .createHash("sha256")
-          .update(token)
-          .digest("hex");
+  async resetPassword(token, newPassword) {
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
-        const user = await User.findOne({
-          passwordResetToken: resetTokenHash,
-          passwordResetExpires: { $gt: Date.now() },
-        });
+    const user = await User.findOne({
+      passwordResetToken: resetTokenHash,
+      passwordResetExpires: { $gt: Date.now() },
+    });
 
-        if (!user) {
-          throw new AppError("Invalid or expired reset token", 400);
-        }
-
-        user.password = newPassword;
-        user.passwordResetToken = undefined;
-        user.passwordResetExpires = undefined;
-        user.refreshTokens = [];
-        user.passwordChangedAt = new Date();
-        await user.save();
-
-        await redisClient.del(`user:${user._id}`);
-
-        logger.info(`User ${user.email} reset their password`);
-      }
-
-    generateTokens(user) {
-        const accessToken = jwt.sign({ 
-            id: user._id,
-            email: user.email,
-            role:user.role
-
-        }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRES_IN,
-        });
-        const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
-            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "15d",
-        });
-        return { accessToken, refreshToken };
+    if (!user) {
+      throw new AppError("Invalid or expired reset token", 400);
     }
-    async generateEmployeeId() {
-        const year = new Date().getFullYear().toString().slice(-2);
-        const random = crypto.randomBytes(3).toString("hex").toUpperCase();
-        const employeeId = `EMP${year}${random}`;
-        const existing = await User.findOne({ "employeeDetails.employeeId": employeeId });
-        if (existing) {
-          return this.generateEmployeeId(); // regenerate if collision
-        }
-        return employeeId;
 
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.refreshTokens = [];
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    await redisClient.del(`user:${user._id}`);
+
+    logger.info(`User ${user.email} reset their password`);
+  }
+
+  generateTokens(user) {
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      },
+    );
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "15d",
+      },
+    );
+    return { accessToken, refreshToken };
+  }
+  async generateEmployeeId() {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const random = crypto.randomBytes(3).toString("hex").toUpperCase();
+    const employeeId = `EMP${year}${random}`;
+    const existing = await User.findOne({
+      "employeeDetails.employeeId": employeeId,
+    });
+    if (existing) {
+      return this.generateEmployeeId(); // regenerate if collision
     }
-    verifyToken(token) {
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            return decoded;
-        } catch (error) {
-            throw new AppError("Invalid or expired token", 401);
-        }
+    return employeeId;
+  }
+  verifyToken(token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      return decoded;
+    } catch (error) {
+      throw new AppError("Invalid or expired token", 401);
     }
+  }
 }
 
 export default new AuthService();

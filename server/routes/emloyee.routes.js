@@ -1,18 +1,27 @@
 import express from 'express';
-import authMiddleware from '../middleware/auth.middleware';
-import roleMiddleware from '../middleware/role.middleware';
-import { createEmployee } from '../controllers/employee.controller';
-
+import employeeController from '../controllers/employee.controller.js';
+import { protect, restrictTo } from '../middlewares/auth.middleware.js';
+import upload from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
-router.post("/" , authMiddleware, roleMiddleware("admin"), createEmployee)
+// All routes are protected
+router.use(protect);
 
-router.put("/:id" , authMiddleware, roleMiddleware("admin"), updateEmployee)
+// Public routes (accessible by all authenticated users)
+router.get('/', employeeController.getAllEmployees);
+router.get('/stats/department', employeeController.getDepartmentStats);
+router.get('/hierarchy', employeeController.getOrganizationHierarchy);
+router.get('/:id', employeeController.getEmployee);
+router.get('/:id/skills', employeeController.getEmployeeSkills);
+router.get('/:id/documents', employeeController.getEmployeeDocuments);
 
-router.delete("/:id" , authMiddleware, roleMiddleware("admin"), deleteEmployee)
-
-router.get("/" , authMiddleware, roleMiddleware("admin", "user"), getEmployees)
-router.get("/:id" , authMiddleware, roleMiddleware("admin", "user"), getEmployeeById)
+// Restricted routes (admin only)
+router.post('/', restrictTo('admin'), employeeController.createEmployee);
+router.patch('/:id', restrictTo('admin', 'manager'), employeeController.updateEmployee);
+router.delete('/:id', restrictTo('admin'), employeeController.deleteEmployee);
+router.post('/bulk/import', restrictTo('admin'), employeeController.bulkImportEmployees);
+router.post('/:id/skills', restrictTo('admin', 'manager'), employeeController.addEmployeeSkill);
+router.post('/:id/documents', restrictTo('admin', 'employee'), upload.single('document'), employeeController.uploadDocument);
 
 export default router;
