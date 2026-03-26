@@ -10,7 +10,7 @@ const Register = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-2xl mx-auto p-6"
+        className="relative z-10 w-full max-w-9xl mx-auto p-6 flex justify-center"
       >
         <RegisterForm />
       </motion.div>

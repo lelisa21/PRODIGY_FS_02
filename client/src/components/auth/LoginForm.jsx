@@ -54,9 +54,9 @@ const LoginForm = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md"
+      className="w-full"
     >
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-secondary-100">
+      <div className="bg-white rounded-xl shadow-xl p-8 border border-secondary-100">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FiLogIn size={32} className="text-white" />
@@ -69,7 +69,7 @@ const LoginForm = () => {
           <Input
             label="Email Address"
             type="email"
-            placeholder="you@company.com"
+            placeholder="lalo@featurecompany.com"
             icon={<FiMail />}
             error={errors.email?.message}
             required
@@ -107,7 +107,6 @@ const LoginForm = () => {
             type="submit"
             variant="primary"
             size="lg"
-            fullWidth
             isLoading={isLoading}
             icon={<FiLogIn />}
           >

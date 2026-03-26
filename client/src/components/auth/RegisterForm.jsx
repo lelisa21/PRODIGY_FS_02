@@ -76,7 +76,7 @@ const RegisterForm = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-2xl"
+      className="w-full  max-w-4xl"
     >
       <div className="bg-white rounded-2xl shadow-xl p-8 border border-secondary-100 w-full">
         <div className="text-center mb-8">
@@ -91,7 +91,7 @@ const RegisterForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Full Name"
-              placeholder="John Doe"
+              placeholder="laloo hailu"
               icon={<FiUser />}
               error={errors.name?.message}
               required
@@ -101,7 +101,7 @@ const RegisterForm = () => {
             <Input
               label="Email Address"
               type="email"
-              placeholder="john@company.com"
+              placeholder="lalo@featurecompany.com"
               icon={<FiMail />}
               error={errors.email?.message}
               required
@@ -178,7 +178,6 @@ const RegisterForm = () => {
             type="submit"
             variant="primary"
             size="lg"
-            fullWidth
             isLoading={isLoading}
             icon={<FiUserPlus />}
           >
@@ -193,6 +192,25 @@ const RegisterForm = () => {
               Sign in
             </Link>
           </p>
+        </div>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-secondary-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-secondary-500">Or continue with</span>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <button className="flex items-center justify-center gap-2 px-4 py-2 border border-secondary-200 rounded-lg hover:bg-secondary-50 transition-colors">
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            <span className="text-sm font-medium text-secondary-700">Google</span>
+          </button>
+          <button className="flex items-center justify-center gap-2 px-4 py-2 border border-secondary-200 rounded-lg hover:bg-secondary-50 transition-colors">
+            <img src="https://github.com/favicon.ico" alt="GitHub" className="w-5 h-5" />
+            <span className="text-sm font-medium text-secondary-700">GitHub</span>
+          </button>
         </div>
       </div>
     </motion.div>

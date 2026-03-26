@@ -19,7 +19,7 @@ const Input = ({
   const [showPassword, setShowPassword] = useState(false);
   const inputType = type === 'password' && showPassword ? 'text' : type;
   
-  const baseStyles = 'block rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent';
+  const baseStyles = 'block rounded-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent';
   
   const stateStyles = error
     ? 'border-error-500 bg-error-50 text-error-900 focus:ring-error-500'
