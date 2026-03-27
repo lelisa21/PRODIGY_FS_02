@@ -61,8 +61,20 @@ const RegisterForm = () => {
   });
   
   const onSubmit = async (data) => {
-    const { confirmPassword, ...registerData } = data;
-    const result = await registerUser(registerData);
+    const { confirmPassword,name, ...registerData } = data;
+
+    const [firstName, ...lastNameArr]  = name.trim().split(" ");
+    const lastName = lastNameArr.join(" ") || "";
+    const paylaod = {
+        ...registerData,
+        profile:{
+            firstName,
+            lastName,
+            phone: registerData.phone || ""
+        }
+    }
+
+    const result = await registerUser(paylaod);
     if (result.success) {
       showSuccess('Account created successfully! Please login.');
       navigate('/login');
