@@ -61,7 +61,7 @@ const RegisterForm = () => {
   });
   
   const onSubmit = async (data) => {
-    const { confirmPassword,name, ...registerData } = data;
+    const { confirmPassword,name,phone, ...registerData } = data;
 
     const [firstName, ...lastNameArr]  = name.trim().split(" ");
     const lastName = lastNameArr.join(" ") || "";
@@ -70,7 +70,7 @@ const RegisterForm = () => {
         profile:{
             firstName,
             lastName,
-            phone: registerData.phone || ""
+            phone: phone || ""
         }
     }
 
@@ -92,7 +92,7 @@ const RegisterForm = () => {
     >
       <div className="bg-white rounded-2xl shadow-xl p-8 border border-secondary-100 w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-linear-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FiUserPlus size={32} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-secondary-900">Create Account</h1>

@@ -185,6 +185,67 @@ class EmployeeController {
       data: document
     });
   });
+
+//   update Emp skills
+updateEmployeeSkills = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { skills } = req.body;
+
+  if (!Array.isArray(skills) || skills.length === 0) {
+    throw new AppError('Please provide an array of skills', 400);
+  }
+
+  const employee = await employeeService.getEmployeeById(id);
+
+  // Update existing skills or add new ones
+  skills.forEach(skill => {
+    if (!skill.name || !skill.level) {
+      throw new AppError('Each skill must have name and level', 400);
+    }
+
+    const index = employee.skills.findIndex(s => s.name === skill.name);
+    if (index > -1) {
+      // Update existing skill
+      employee.skills[index].level = skill.level;
+    } else {
+      // Add new skill
+      employee.skills.push(skill);
+    }
+  });
+
+  await employee.save();
+
+  // Update cache
+  await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+
+  res.status(200).json({
+    success: true,
+    message: 'Skills updated successfully',
+    data: employee.skills
+  });
+});
+
+// del document
+deleteDocument = catchAsync(async (req, res) => {
+  const { id, documentId } = req.params;
+  const employee = await employeeService.getEmployeeById(id);
+
+  const docIndex = employee.documents.findIndex(doc => doc._id.toString() === documentId);
+  if (docIndex === -1) {
+    throw new AppError('Document not found', 404);
+  }
+
+  const [deletedDoc] = employee.documents.splice(docIndex, 1);
+  await employee.save();
+  await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+
+  res.status(200).json({
+    success: true,
+    message: 'Document deleted successfully',
+    data: deletedDoc
+  });
+});
+
 }
 
 export default new EmployeeController();

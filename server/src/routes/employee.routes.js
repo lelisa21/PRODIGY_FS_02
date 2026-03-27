@@ -16,12 +16,19 @@ router.get('/:id', employeeController.getEmployee);
 router.get('/:id/skills', employeeController.getEmployeeSkills);
 router.get('/:id/documents', employeeController.getEmployeeDocuments);
 
-// Restricted routes (admin only)
+// Restricted routes
 router.post('/', restrictTo('admin'), employeeController.createEmployee);
 router.patch('/:id', restrictTo('admin', 'manager'), employeeController.updateEmployee);
 router.delete('/:id', restrictTo('admin'), employeeController.deleteEmployee);
+
 router.post('/bulk/import', restrictTo('admin'), employeeController.bulkImportEmployees);
+
+// Skills
 router.post('/:id/skills', restrictTo('admin', 'manager'), employeeController.addEmployeeSkill);
+router.patch('/:id/skills', restrictTo('admin', 'manager'), employeeController.updateEmployeeSkills); // NEW
+
+// Documents
 router.post('/:id/documents', restrictTo('admin', 'employee'), upload.single('document'), employeeController.uploadDocument);
+router.delete('/:id/documents/:documentId', restrictTo('admin', 'employee'), employeeController.deleteDocument); // NEW
 
 export default router;

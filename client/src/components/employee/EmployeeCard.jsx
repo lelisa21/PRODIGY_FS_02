@@ -20,10 +20,10 @@ const EmployeeCard = ({ employee, onClick }) => {
       whileHover={{ y: -4 }}
       className="bg-white rounded-xl shadow-soft border border-secondary-200 overflow-hidden hover:shadow-hard transition-all duration-200"
     >
-      <div className="relative h-24 bg-gradient-to-r from-primary-500 to-primary-600">
+      <div className="relative h-24 bg-linear-to-r from-primary-500 to-primary-600">
         <div className="absolute -bottom-12 left-4">
           <div className="w-24 h-24 rounded-xl bg-white p-1 shadow-md">
-            <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+            <div className="w-full h-full rounded-lg bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center">
               <span className="text-white text-2xl font-bold">
                 {employee.name?.charAt(0) || 'E'}
               </span>

@@ -20,7 +20,7 @@ export const signupValidator = Joi.object({
     avatar: Joi.string().optional()
   }).required(),
    department: Joi.string().optional(),
-  position: Joi.string().optional()
+   position: Joi.string().optional()
 });
 
 export const loginValidator = Joi.object({

@@ -58,7 +58,7 @@ const LoginForm = () => {
     >
       <div className="bg-white rounded-xl shadow-xl p-8 border border-secondary-100">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-linear-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FiLogIn size={32} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-secondary-900">Welcome Back</h1>
