@@ -37,7 +37,8 @@ export const protect = catchAsync(async (req, res, next) => {
 
     // Check if password was changed after token was issued
     if (user.passwordChangedAt) {
-      const changedTimestamp = parseInt(user.passwordChangedAt.getTime() / 1000, 10);
+    const changedAt = new Date(user.passwordChangedAt);
+      const changedTimestamp = Math.floor(changedAt.getTime() / 1000);
       if (decoded.iat < changedTimestamp) {
         throw new AppError('Password recently changed. Please log in again.', 401);
       }
