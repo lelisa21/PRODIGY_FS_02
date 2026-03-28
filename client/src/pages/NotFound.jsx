@@ -18,7 +18,7 @@ const NotFound = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', damping: 10 }}
-          className="text-8xl sm:text-9xl font-bold bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent mb-6"
+          className="text-8xl sm:text-9xl font-bold bg-linear-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent mb-6"
         >
           404
         </motion.div>
@@ -27,7 +27,7 @@ const NotFound = () => {
           Page Not Found
         </h1>
         
-        <p className="text-secondary-600 mb-8 max-w-md">
+        <p className="text-secondary-600 mb-8">
           Oops! The page you're looking for doesn't exist or has been moved.
         </p>
         

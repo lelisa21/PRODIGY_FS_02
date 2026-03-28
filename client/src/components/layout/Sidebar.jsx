@@ -70,22 +70,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo Area */}
-          <div className="h-16 flex items-center justify-center border-b border-secondary-200 px-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">EMS</span>
-              </div>
-              <span className="text-base md:text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-                Enterprise EMS
-              </span>
-            </div>
-          </div>
-
           {/* User Info */}
           <div className="p-4 border-b border-secondary-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-medium">
                   {user?.name?.charAt(0) || 'U'}
                 </span>
