@@ -159,7 +159,12 @@ const employeeSchema = new mongoose.Schema({
         ref: 'User' 
       }
     }]
-  }
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'on_leave', 'probation'],
+    default: 'active'
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

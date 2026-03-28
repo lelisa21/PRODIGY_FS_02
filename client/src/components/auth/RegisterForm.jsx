@@ -60,28 +60,31 @@ const RegisterForm = () => {
     },
   });
   
-  const onSubmit = async (data) => {
-    const { confirmPassword,name,phone, ...registerData } = data;
+const onSubmit = async (data) => {
+  const { confirmPassword, name, phone, ...registerData } = data;
 
-    const [firstName, ...lastNameArr]  = name.trim().split(" ");
-    const lastName = lastNameArr.join(" ") || "";
-    const paylaod = {
-        ...registerData,
-        profile:{
-            firstName,
-            lastName,
-            phone: phone || ""
-        }
-    }
-
-    const result = await registerUser(paylaod);
-    if (result.success) {
-      showSuccess('Account created successfully! Please login.');
-      navigate('/login');
-    } else {
-      showError(result.error || 'Registration failed. Please try again.');
+  const [firstName, ...lastNameArr] = name.trim().split(" ");
+  const lastName = lastNameArr.join(" ") || "";
+  
+  const payload = {
+    ...registerData,
+    profile: {
+      firstName,
+      lastName,
+      phone: phone || ""
     }
   };
+
+  const result = await registerUser(payload);
+  console.log('Registration result:', result); 
+  
+  if (result.success) {
+    showSuccess(result.message || 'Account created successfully! Please login.');
+    navigate('/login');
+  } else {
+    showError(result.error);
+  }
+};
   
   return (
     <motion.div

@@ -6,7 +6,7 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      isAuthenticated: true,
+      isAuthenticated: false, // Change this to false initially
       isLoading: false,
       error: null,
 
@@ -14,7 +14,10 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await api.post('/auth/login', { email, password });
-          const { user, accessToken, refreshToken } = response.data;
+          console.log('Login response:', response.data); // Debug
+          
+          // Fix: Your backend returns data in response.data.data.user
+          const { user, accessToken, refreshToken } = response.data.data;
           
           localStorage.setItem('accessToken', accessToken);
           if (rememberMe) {
@@ -25,17 +28,20 @@ export const useAuthStore = create(
             user,
             isAuthenticated: true,
             isLoading: false,
+            error: null,
           });
           
-          return { success: true };
+          return { success: true, data: response.data };
         } catch (error) {
+          console.error('Login error:', error.response?.data);
+          const errorMessage = error.response?.data?.message || 'Login failed';
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Login failed',
+            error: errorMessage,
           });
           return {
             success: false,
-            error: error.response?.data?.message || 'Login failed',
+            error: errorMessage,
           };
         }
       },
@@ -43,7 +49,10 @@ export const useAuthStore = create(
       logout: async () => {
         set({ isLoading: true });
         try {
-          await api.post('/auth/logout');
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            await api.post('/auth/logout', { refreshToken });
+          }
         } catch (error) {
           console.error('Logout error:', error);
         } finally {
@@ -62,16 +71,32 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await api.post('/auth/signup', userData);
-          set({ isLoading: false });
-          return { success: true, data: response.data };
+          console.log('Registration response:', response.data); // Debug
+          
+          // Check if registration was successful
+          if (response.data.success) {
+            set({ 
+              isLoading: false,
+              error: null,
+            });
+            return { 
+              success: true, 
+              data: response.data.data,
+              message: response.data.message 
+            };
+          } else {
+            throw new Error(response.data.message || 'Registration failed');
+          }
         } catch (error) {
+          console.error('Registration error:', error.response?.data);
+          const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Registration failed',
+            error: errorMessage,
           });
           return {
             success: false,
-            error: error.response?.data?.message || 'Registration failed',
+            error: errorMessage,
           };
         }
       },
@@ -80,20 +105,58 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await api.patch('/auth/profile', data);
+          console.log('Update profile response:', response.data); // Debug
+          
+          // Fix: Access user from response.data.data
+          const updatedUser = response.data.data;
+          
           set({
-            user: response.data.user,
+            user: updatedUser,
             isLoading: false,
+            error: null,
           });
-          return { success: true };
+          return { success: true, data: updatedUser };
         } catch (error) {
+          console.error('Update profile error:', error.response?.data);
+          const errorMessage = error.response?.data?.message || 'Update failed';
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Update failed',
+            error: errorMessage,
           });
           return {
             success: false,
-            error: error.response?.data?.message || 'Update failed',
+            error: errorMessage,
           };
+        }
+      },
+
+      // Add this method to check auth status on app load
+      checkAuth: async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          set({ isAuthenticated: false, user: null });
+          return false;
+        }
+        
+        try {
+          // Optional: Verify token by fetching profile
+          const response = await api.get('/auth/profile');
+          set({
+            user: response.data.data,
+            isAuthenticated: true,
+            error: null,
+          });
+          return true;
+        } catch (error) {
+          // Token is invalid
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          set({
+            user: null,
+            isAuthenticated: false,
+            error: null,
+          });
+          return false;
         }
       },
 
@@ -102,7 +165,10 @@ export const useAuthStore = create(
     {
       name: 'auth-storage',
       getStorage: () => localStorage,
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ 
+        user: state.user, 
+        isAuthenticated: state.isAuthenticated 
+      }),
     }
   )
 );

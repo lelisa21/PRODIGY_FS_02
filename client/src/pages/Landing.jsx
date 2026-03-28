@@ -99,15 +99,15 @@ const Landing = () => {
     },
   ];
 
-  const stats = [
-    { value: "1000+", label: "Active Users", icon: <FiUsers /> },
-    { value: "50+", label: "Enterprise Clients", icon: <FiAward /> },
-    { value: "91.9%", label: "Uptime", icon: <FiShield /> },
-    { value: "24/7", label: "Support", icon: <FiCheck /> },
-  ];
+//   const stats = [
+//     { value: "1000+", label: "Active Users", icon: <FiUsers /> },
+//     { value: "50+", label: "Enterprise Clients", icon: <FiAward /> },
+//     { value: "91.9%", label: "Uptime", icon: <FiShield /> },
+//     { value: "24/7", label: "Support", icon: <FiCheck /> },
+//   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-white overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-secondary-50 to-white overflow-hidden">
       {/* Animated Backgrounds */}
       <AnimatedBackground3D />
       <ParticleWave />
@@ -187,7 +187,7 @@ const Landing = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link to="/register">
-                <RippleButton className="px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all">
+                <RippleButton className="px-8 py-4 bg-linear-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all">
                   Get Started Free
                   <FiArrowRight className="inline ml-2" />
                 </RippleButton>
@@ -199,7 +199,7 @@ const Landing = () => {
               </Link>
             </motion.div>
 
-            {/* Stats */}
+            {/* Stats
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -220,7 +220,7 @@ const Landing = () => {
                   </div>
                 </motion.div>
               ))}
-            </motion.div>
+            </motion.div> */}
           </motion.div>
         </div>
 
