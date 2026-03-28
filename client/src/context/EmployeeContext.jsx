@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import { useToast } from './ToastContext';
 import employeeService from '../services/employee.service';
-
+import { useAuthStore } from '../store/authStore';
 // Initial State
 const initialState = {
   employees: [],
@@ -121,9 +121,24 @@ export const useEmployeeContext = () => {
 export const EmployeeProvider = ({ children }) => {
   const [state, dispatch] = useReducer(employeeReducer, initialState);
   const { success: showSuccess, error: showError } = useToast();
+  const { isAuthenticated } = useAuthStore(); 
+  const isFirstRender = useRef(true);
+  const isLoadingRef = useRef(false);
 
-  // Load employees with filters and pagination
+
   const loadEmployees = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.log('Not authenticated, skipping employee load');
+      return;
+    }
+    
+    if (isLoadingRef.current) {
+      console.log('Already loading, skipping...');
+      return;
+    }
+    
+    console.log(' Loading employees...');
+    isLoadingRef.current = true;
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
     try {
@@ -136,18 +151,52 @@ export const EmployeeProvider = ({ children }) => {
         position: state.filters.position,
       };
       
+      console.log('Request params:', params);
+      
       const response = await employeeService.getEmployees(params);
+      
       dispatch({ type: ACTIONS.SET_EMPLOYEES, payload: response });
       return { success: true, data: response };
     } catch (error) {
+      console.error('Load employees error:', error.response?.status);
+      
+      if (error.response?.status === 401) {
+        console.log('Unauthorized, clearing auth');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        return { success: false, error: 'Unauthorized' };
+      }
+      
       const errorMessage = error.response?.data?.message || 'Failed to load employees';
       dispatch({ type: ACTIONS.SET_ERROR, payload: errorMessage });
-      showError(errorMessage);
+      
+      if (error.response?.status !== 429) {
+        showError(errorMessage);
+      }
+      
       return { success: false, error: errorMessage };
+    } finally {
+      isLoadingRef.current = false;
     }
-  }, [state.pagination.page, state.pagination.limit, state.filters]);
+  }, [state.pagination.page, state.pagination.limit, state.filters, isAuthenticated, showError]);
 
-  // Load single employee by ID
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        setTimeout(() => loadEmployees(), 100);
+      } else {
+        loadEmployees();
+      }
+    } else {
+      console.log('Not authenticated, clearing employees');
+      dispatch({ 
+        type: ACTIONS.SET_EMPLOYEES, 
+        payload: { data: [], total: 0 } 
+      });
+    }
+  }, [state.pagination.page, state.pagination.limit, state.filters, isAuthenticated, loadEmployees]);
+
   const loadEmployeeById = useCallback(async (id) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
@@ -293,10 +342,16 @@ export const EmployeeProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_PAGINATION, payload: { page: 1 } });
   }, []);
 
-  // Load employees when dependencies change
+  // ✅ FIXED: Load employees when pagination or filters change
   useEffect(() => {
-    loadEmployees();
-  }, [loadEmployees]);
+    // Skip the first render to avoid double loading
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      loadEmployees();
+    } else {
+      loadEmployees();
+    }
+  }, [state.pagination.page, state.pagination.limit, state.filters]); // ✅ Depend on values, not the function
 
   // Context value
   const value = {
