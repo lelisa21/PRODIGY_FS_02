@@ -11,6 +11,7 @@ const connectDB = async () =>{
         serverSelectionTimeoutMS:6000,
         socketTimeoutMS:50000,
         connectTimeoutMS:10000,
+        
         // performance
         autoIndex:false,
 

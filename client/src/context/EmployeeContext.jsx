@@ -342,20 +342,16 @@ export const EmployeeProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_PAGINATION, payload: { page: 1 } });
   }, []);
 
-  // ✅ FIXED: Load employees when pagination or filters change
   useEffect(() => {
-    // Skip the first render to avoid double loading
     if (isFirstRender.current) {
       isFirstRender.current = false;
       loadEmployees();
     } else {
       loadEmployees();
     }
-  }, [state.pagination.page, state.pagination.limit, state.filters]); // ✅ Depend on values, not the function
+  }, [state.pagination.page, state.pagination.limit, state.filters]); 
 
-  // Context value
   const value = {
-    // State
     employees: state.employees,
     currentEmployee: state.currentEmployee,
     total: state.total,

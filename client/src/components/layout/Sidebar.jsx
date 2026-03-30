@@ -13,19 +13,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, logout } = useAuthStore();
 
   const menuItems = [
-    { path: '/app/dashboard', icon: FiHome, label: 'Dashboard' },
-    { path: '/app/employees', icon: FiUsers, label: 'Employees' },
-    { path: '/app/departments', icon: FiBriefcase, label: 'Departments' },
-    { path: '/app/attendance', icon: FiCalendar, label: 'Attendance' },
-    { path: '/app/performance', icon: FiTrendingUp, label: 'Performance' },
-    { path: '/app/reports', icon: FiBarChart2, label: 'Reports' },
-    { path: '/app/documents', icon: FiFileText, label: 'Documents' },
-    { path: '/app/messages', icon: FiMail, label: 'Messages' },
+    { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
+    { path: '/employees', icon: FiUsers, label: 'Employees' },
+    { path: '/departments', icon: FiBriefcase, label: 'Departments' },
+    { path: '/attendance', icon: FiCalendar, label: 'Attendance' },
+    { path: '/performance', icon: FiTrendingUp, label: 'Performance' },
+    { path: '/reports', icon: FiBarChart2, label: 'Reports' },
+    { path: '/documents', icon: FiFileText, label: 'Documents' },
+    { path: '/messages', icon: FiMail, label: 'Messages' },
   ];
 
   const bottomMenuItems = [
-    { path: '/app/profile', icon: FiUser, label: 'Profile' },
-    { path: '/app/settings', icon: FiSettings, label: 'Settings' },
+    { path: '/profile', icon: FiUser, label: 'Profile' },
+    { path: '/settings', icon: FiSettings, label: 'Settings' },
   ];
 
   const handleLogout = async () => {
