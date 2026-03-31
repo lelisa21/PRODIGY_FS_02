@@ -55,10 +55,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             </button>
             
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">EMS</span>
               </div>
-              <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+              <span className="hidden sm:block text-xl font-bold bg-linear-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
                 Enterprise EMS
               </span>
             </Link>
@@ -124,7 +124,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               align="right"
               trigger={
                 <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary-100 transition-colors">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
                       {user?.name ? getInitials(user.name) : 'U'}
                     </span>

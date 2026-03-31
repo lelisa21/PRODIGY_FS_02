@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/authContext';
@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { EmployeeProvider } from './context/EmployeeContext';
 import { useAuthContext } from './context/authContext';
+
 import Layout from './components/layout/Layout';
 import Landing from './pages/Landing'; 
 import Login from './pages/Login';
@@ -17,6 +18,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
+
 import './styles/globals.css';
 
 const queryClient = new QueryClient({
@@ -40,7 +42,7 @@ const PrivateRoute = ({ children }) => {
     );
   }
   
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 const PublicRoute = ({ children }) => {
@@ -54,63 +56,61 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
 };
-
-function AppRoutes() {
-  return (
-    <Routes>
-      {/* Landing Page - Public */}
-      <Route path="/" element={<Landing />} />
-      
-      {/* Auth Routes */}
-      <Route path="/login" element={
-        <PublicRoute>
-          <Login />
-        </PublicRoute>
-      } />
-      <Route path="/register" element={
-        <PublicRoute>
-          <Register />
-        </PublicRoute>
-      } />
-      
-      {/* Protected Routes */}
-      <Route path="/" element={
-        <PrivateRoute>
-          <Layout />
-        </PrivateRoute>
-      }>
-        <Route index element={<Navigate to="/dashboard" />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="employees" element={<Employees />} />
-        <Route path="employees/:id" element={<EmployeeDetails />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
-        <Route path="reports" element={<Reports />} />
-      </Route>
-      
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
 
 function App() {
   return (
     <BrowserRouter>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <EmployeeProvider>
-                  <AppRoutes />
-              </EmployeeProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <EmployeeProvider>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/dashboard" element={<Landing />} />
+                    
+                    <Route path="/login" element={
+                      <PublicRoute>
+                        <Login />
+                      </PublicRoute>
+                    } />
+                    
+                    <Route path="/register" element={
+                      <PublicRoute>
+                        <Register />
+                      </PublicRoute>
+                    } />
+
+                    {/* Protected routes with Layout */}
+                    <Route
+                      path="/"
+                      element={
+                        <PrivateRoute>
+                          <Layout />
+                        </PrivateRoute>
+                      }
+                    >
+                      <Route index element={<Navigate to="/" replace />} />
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="employees" element={<Employees />} />
+                      <Route path="employees/:id" element={<EmployeeDetails />} />
+                      <Route path="profile" element={<Profile />} />
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="reports" element={<Reports />} />
+                    </Route>
+
+                    {/* 404 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </EmployeeProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </BrowserRouter>
   );
 }
