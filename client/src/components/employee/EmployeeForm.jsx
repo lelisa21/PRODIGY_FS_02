@@ -19,14 +19,20 @@ const employeeSchema = z.object({
   department: z.string().min(1, 'Department is required'),
   position: z.string().min(1, 'Position is required'),
   location: z.string().optional(),
-  joinDate: z.string().optional(),
-  salary: z.number().optional(),
+  joinDate: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().optional()
+  ),
+  salary: z.preprocess(
+    (val) => (val === '' || val === null || Number.isNaN(val) ? undefined : val),
+    z.number().min(0).optional()
+  ),
   status: z.enum(['active', 'inactive', 'on_leave', 'probation']).default('active'),
 });
 
 const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
   const { createEmployee, updateEmployee, isLoading } = useEmployeeStore();
-  const { success: showSuccess, error: showError } = useToast();
+  const { success: showSuccess, error: showError, info: showInfo } = useToast();
   const [activeTab, setActiveTab] = useState('basic');
   
   const {
@@ -53,7 +59,10 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
   
   useEffect(() => {
     if (employee) {
-      reset(employee);
+      reset({
+        ...employee,
+        joinDate: employee.joinDate ? String(employee.joinDate).split('T')[0] : '',
+      });
     }
   }, [employee, reset]);
   
@@ -70,6 +79,9 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
         result = await createEmployee(data);
         if (result.success) {
           showSuccess('Employee created successfully');
+          if (result.meta?.tempPassword) {
+            showInfo(`Temporary password: ${result.meta.tempPassword}`);
+          }
           onSuccess();
         }
       }

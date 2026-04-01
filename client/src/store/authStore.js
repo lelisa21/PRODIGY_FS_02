@@ -16,12 +16,12 @@ export const useAuthStore = create(
           const response = await api.post('/auth/login', { email, password });
           console.log('Login response:', response.data); // Debug
           
-          // Fix: Your backend returns data in response.data.data.user
-          const { user, accessToken, refreshToken } = response.data.data;
+          // Backend returns data in response.data.data.user
+          const { user, accessToken } = response.data.data;
           
           localStorage.setItem('accessToken', accessToken);
-          if (rememberMe) {
-            localStorage.setItem('refreshToken', refreshToken);
+          if (!rememberMe) {
+            localStorage.removeItem('refreshToken');
           }
           
           set({
@@ -49,10 +49,7 @@ export const useAuthStore = create(
       logout: async () => {
         set({ isLoading: true });
         try {
-          const refreshToken = localStorage.getItem('refreshToken');
-          if (refreshToken) {
-            await api.post('/auth/logout', { refreshToken });
-          }
+          await api.post('/auth/logout');
         } catch (error) {
           console.error('Logout error:', error);
         } finally {
@@ -132,9 +129,10 @@ export const useAuthStore = create(
 
       // Add this method to check auth status on app load
       checkAuth: async () => {
+        set({ isLoading: true });
         const token = localStorage.getItem('accessToken');
         if (!token) {
-          set({ isAuthenticated: false, user: null });
+          set({ isAuthenticated: false, user: null, isLoading: false });
           return false;
         }
         
@@ -145,6 +143,7 @@ export const useAuthStore = create(
             user: response.data.data,
             isAuthenticated: true,
             error: null,
+            isLoading: false,
           });
           return true;
         } catch (error) {
@@ -155,6 +154,7 @@ export const useAuthStore = create(
             user: null,
             isAuthenticated: false,
             error: null,
+            isLoading: false,
           });
           return false;
         }

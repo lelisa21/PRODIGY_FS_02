@@ -6,6 +6,7 @@ import {
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import redisClient from '../utils/redisClient.js';
+import ActivityLog from '../models/ActivityLog.model.js';
 
 class EmployeeController {
   createEmployee = catchAsync(async (req, res) => {
@@ -14,13 +15,29 @@ class EmployeeController {
       throw new AppError(error.details[0].message, 400);
     }
 
-    const employee = await employeeService.createEmployee(req.body);
+    const result = await employeeService.createEmployee(req.body);
 
     res.status(201).json({
       success: true,
       message: 'Employee created successfully',
-      data: employee
+      data: result.employee,
+      ...(result.tempPassword ? { meta: { tempPassword: result.tempPassword } } : {})
     });
+
+    try {
+      await ActivityLog.create({
+        user: req.user.id,
+        action: 'CREATE',
+        resource: 'EMPLOYEE',
+        resourceId: result.employee._id,
+        details: { employeeId: result.employee.employmentDetails.employeeId },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        status: 'SUCCESS'
+      });
+    } catch (error) {
+      // Silently ignore logging errors
+    }
   });
 
   getEmployee = catchAsync(async (req, res) => {
@@ -63,6 +80,21 @@ class EmployeeController {
       message: 'Employee updated successfully',
       data: employee
     });
+
+    try {
+      await ActivityLog.create({
+        user: req.user.id,
+        action: 'UPDATE',
+        resource: 'EMPLOYEE',
+        resourceId: employee._id,
+        details: { employeeId: employee.employmentDetails.employeeId },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        status: 'SUCCESS'
+      });
+    } catch (error) {
+      // Silently ignore logging errors
+    }
   });
 
   deleteEmployee = catchAsync(async (req, res) => {
@@ -74,6 +106,20 @@ class EmployeeController {
       success: true,
       message: 'Employee deleted successfully'
     });
+
+    try {
+      await ActivityLog.create({
+        user: req.user.id,
+        action: 'DELETE',
+        resource: 'EMPLOYEE',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        status: 'SUCCESS'
+      });
+    } catch (error) {
+      // Silently ignore logging errors
+    }
   });
 
   getDepartmentStats = catchAsync(async (req, res) => {
@@ -173,6 +219,7 @@ class EmployeeController {
       name: req.file.originalname,
       type: req.file.mimetype,
       url: `/uploads/${req.file.filename}`,
+      size: req.file.size,
       uploadedAt: new Date()
     };
 

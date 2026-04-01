@@ -144,12 +144,19 @@ class AuthController {
   });
 
   updateProfile = catchAsync(async (req, res) => {
-    const allowedFields = ['profile', 'preferences'];
+    const allowedFields = ['profile', 'preferences', 'email', 'employeeDetails'];
     const updateData = {};
     
     allowedFields.forEach(field => {
-      if (req.body[field]) {
-        updateData[field] = req.body[field];
+      if (req.body[field] !== undefined) {
+        if (typeof req.body[field] === 'string') {
+          const trimmed = req.body[field].trim();
+          if (trimmed) {
+            updateData[field] = trimmed;
+          }
+        } else {
+          updateData[field] = req.body[field];
+        }
       }
     });
 

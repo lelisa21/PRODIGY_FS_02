@@ -19,6 +19,11 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const [notifications, setNotifications] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const displayName =
+    user?.fullName ||
+    `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim() ||
+    user?.email ||
+    'User';
 
   const handleLogout = async () => {
     await logout();
@@ -126,11 +131,11 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary-100 transition-colors">
                   <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.name ? getInitials(user.name) : 'U'}
+                      {displayName ? getInitials(displayName) : 'U'}
                     </span>
                   </div>
                   <span className="hidden md:block text-sm font-medium text-secondary-700">
-                    {user?.name || 'User'}
+                    {displayName}
                   </span>
                   <FiChevronDown size={16} className="text-secondary-500" />
                 </button>

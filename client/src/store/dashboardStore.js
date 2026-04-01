@@ -12,18 +12,24 @@ export const useDashboardStore = create((set, get) => ({
   fetchDashboardData: async () => {
     set({ isLoading: true, error: null });
     try {
-      const [stats, performance, salaryDistribution, recentActivity] = await Promise.all([
+      const results = await Promise.allSettled([
         dashboardService.getStats(),
         dashboardService.getPerformance(),
         dashboardService.getSalaryDistribution(),
         dashboardService.getRecentActivity(),
       ]);
+
+      const [statsRes, performanceRes, salaryRes, activityRes] = results;
+      const stats = statsRes.status === 'fulfilled' ? statsRes.value : null;
+      const performance = performanceRes.status === 'fulfilled' ? performanceRes.value : null;
+      const salaryDistribution = salaryRes.status === 'fulfilled' ? salaryRes.value : null;
+      const recentActivity = activityRes.status === 'fulfilled' ? activityRes.value : null;
       
       set({
-        stats: stats.data,
-        performance: performance.data,
-        salaryDistribution: salaryDistribution.data,
-        recentActivity: recentActivity.data,
+        stats: stats?.data || null,
+        performance: performance?.data || null,
+        salaryDistribution: salaryDistribution?.data || null,
+        recentActivity: recentActivity?.data || [],
         isLoading: false,
       });
       return { success: true };

@@ -115,6 +115,11 @@ userSchema.virtual('fullName').get(function() {
   return `${this.profile.firstName} ${this.profile.lastName}`;
 });
 
+// Virtual for lock status
+userSchema.virtual('isLocked').get(function() {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   

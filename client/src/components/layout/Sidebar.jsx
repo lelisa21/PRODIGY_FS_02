@@ -11,6 +11,11 @@ import { clsx } from 'clsx';
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const displayName =
+    user?.fullName ||
+    `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim() ||
+    user?.email ||
+    'User';
 
   const menuItems = [
     { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
@@ -75,12 +80,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-medium">
-                  {user?.name?.charAt(0) || 'U'}
+                  {displayName.charAt(0) || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-secondary-900 truncate">
-                  {user?.name || 'User'}
+                  {displayName}
                 </p>
                 <p className="text-xs text-secondary-500 truncate">
                   {user?.role || 'Employee'}

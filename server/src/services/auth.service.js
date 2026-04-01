@@ -18,6 +18,8 @@ class AuthService {
       ...userData,
       employeeDetails: {
         ...userData.employeeDetails,
+        department: userData.department || userData.employeeDetails?.department,
+        position: userData.position || userData.employeeDetails?.position,
         employeeId,
       },
     });
@@ -52,7 +54,7 @@ class AuthService {
       throw new AppError("Invalid email or password", 401);
     }
     // check if account is locked
-    if (user.isLocked && user.lockUntil > Date.now()) {
+    if (user.isLocked) {
       throw new AppError(
         "Account is locked due to multiple failed login attempts. Please try again later.",
         423,
@@ -61,7 +63,7 @@ class AuthService {
     //   verify password
     const isPasswrordValid = await user.comparePassword(password);
     if (!isPasswrordValid) {
-      await user.incrementLoginAttempts();
+      await user.incLoginAttempts();
       throw new AppError("Invalid email or password", 401);
     }
     // reset login attempts on successful login

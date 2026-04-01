@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import  { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiMail, FiPhone, FiMapPin, FiCalendar, 
@@ -13,10 +13,29 @@ const EmployeeProfile = ({ employee, onEdit, readOnly = true }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(employee);
   
-  const handleSave = () => {
+  useEffect(() => {
+    setFormData(employee);
+  }, [employee]);
+
+  useEffect(() => {
+    setIsEditing(!readOnly);
+  }, [readOnly]);
+
+  const handleSave = useCallback(() => {
     onEdit?.(formData);
     setIsEditing(false);
-  };
+  }, [formData, onEdit]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    const handler = () => {
+      if (isEditing) {
+        handleSave();
+      }
+    };
+    window.addEventListener('saveEmployee', handler);
+    return () => window.removeEventListener('saveEmployee', handler);
+  }, [handleSave, isEditing, readOnly]);
   
   const getStatusColor = (status) => {
     const colors = {

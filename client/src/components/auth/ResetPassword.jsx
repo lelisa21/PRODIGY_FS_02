@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,6 +26,7 @@ const resetSchema = z.object({
 const ResetPassword = () => {
   const navigate = useNavigate();
   const { token } = useParams();
+  const { search } = useLocation();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +48,12 @@ const ResetPassword = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      await authService.resetPassword(token, data.password);
+      const queryToken = new URLSearchParams(search).get('token');
+      const resetToken = token || queryToken;
+      if (!resetToken) {
+        throw new Error('Missing reset token');
+      }
+      await authService.resetPassword(resetToken, data.password);
       setIsSubmitted(true);
       showSuccess('Password reset successfully');
       setTimeout(() => {

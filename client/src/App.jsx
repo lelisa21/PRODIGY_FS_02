@@ -11,9 +11,16 @@ import Layout from './components/layout/Layout';
 import Landing from './pages/Landing'; 
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import EmployeeDetails from './pages/EmployeeDetails';
+import Departments from './pages/Departments';
+import Attendance from './pages/Attendance';
+import Performance from './pages/Performance';
+import Documents from './pages/Documents';
+import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Reports from './pages/Reports';
@@ -70,7 +77,7 @@ function App() {
                 <EmployeeProvider>
                   <Routes>
                     {/* Public routes */}
-                    <Route path="/dashboard" element={<Landing />} />
+                    <Route path="/landing" element={<Landing />} />
                     
                     <Route path="/login" element={
                       <PublicRoute>
@@ -84,6 +91,18 @@ function App() {
                       </PublicRoute>
                     } />
 
+                    <Route path="/forgot-password" element={
+                      <PublicRoute>
+                        <ForgotPassword />
+                      </PublicRoute>
+                    } />
+
+                    <Route path="/reset-password/:token" element={
+                      <PublicRoute>
+                        <ResetPassword />
+                      </PublicRoute>
+                    } />
+
                     {/* Protected routes with Layout */}
                     <Route
                       path="/"
@@ -93,10 +112,15 @@ function App() {
                         </PrivateRoute>
                       }
                     >
-                      <Route index element={<Navigate to="/" replace />} />
+                      <Route index element={<Navigate to="/dashboard" replace />} />
                       <Route path="dashboard" element={<Dashboard />} />
                       <Route path="employees" element={<Employees />} />
                       <Route path="employees/:id" element={<EmployeeDetails />} />
+                      <Route path="departments" element={<Departments />} />
+                      <Route path="attendance" element={<Attendance />} />
+                      <Route path="performance" element={<Performance />} />
+                      <Route path="documents" element={<Documents />} />
+                      <Route path="messages" element={<Messages />} />
                       <Route path="profile" element={<Profile />} />
                       <Route path="settings" element={<Settings />} />
                       <Route path="reports" element={<Reports />} />

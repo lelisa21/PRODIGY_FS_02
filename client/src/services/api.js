@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
 
-const API_BASE_URL = "/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,6 +8,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true,
   timeout: 30000,
 });
 
@@ -36,14 +36,17 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-          refreshToken,
-        });
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
         
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const accessToken = response.data?.data?.accessToken;
+        if (!accessToken) {
+          throw new Error('No access token returned');
+        }
         localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
         
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);

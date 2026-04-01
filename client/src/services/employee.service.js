@@ -19,6 +19,7 @@ const transformEmployee = (employee) => {
     email: employee.employmentDetails?.workEmail || '',
     workPhone: employee.employmentDetails?.workPhone || '',
     hireDate: employee.employmentDetails?.hireDate,
+    joinDate: employee.employmentDetails?.hireDate,
     employmentType: employee.employmentDetails?.employmentType || 'full-time',
     workLocation: employee.employmentDetails?.workLocation || '',
     manager: employee.employmentDetails?.manager,
@@ -37,12 +38,15 @@ const transformEmployee = (employee) => {
     emergencyContact: employee.personalInfo?.emergencyContact,
     
     // Derived fields
-    phone: employee.personalInfo?.emergencyContact?.phone || '',
-    location: employee.personalInfo?.address?.city || '',
+    phone: employee.employmentDetails?.workPhone || employee.personalInfo?.emergencyContact?.phone || '',
+    location: employee.employmentDetails?.workLocation || employee.personalInfo?.address?.city || '',
     
     // Arrays
     skills: employee.skills || [],
-    documents: employee.documents || [],
+    documents: (employee.documents || []).map(doc => ({
+      ...doc,
+      id: doc._id || doc.id,
+    })),
     jobHistory: employee.jobHistory || [],
     education: employee.education || [],
     
@@ -63,17 +67,31 @@ const transformEmployee = (employee) => {
 // Helper to transform frontend data to backend format
 const transformToBackend = (data) => {
   const backendData = {};
+  const name = typeof data.name === 'string' ? data.name.trim() : '';
+  if (name) {
+    const [firstName, ...lastNameParts] = name.split(' ').filter(Boolean);
+    backendData.userProfile = {
+      firstName: firstName || '',
+      lastName: lastNameParts.join(' ') || ''
+    };
+  }
+  if (data.email !== undefined) {
+    backendData.userEmail = data.email;
+  }
   
   // Employment Details
-  if (data.department || data.position || data.email || data.hireDate) {
+  const joinDate = data.hireDate || data.joinDate;
+  const workLocation = data.workLocation !== undefined ? data.workLocation : data.location;
+  const workPhone = data.workPhone !== undefined ? data.workPhone : data.phone;
+  if (data.department || data.position || data.email || joinDate || workLocation || workPhone) {
     backendData.employmentDetails = {};
     if (data.department !== undefined) backendData.employmentDetails.department = data.department;
     if (data.position !== undefined) backendData.employmentDetails.position = data.position;
     if (data.email !== undefined) backendData.employmentDetails.workEmail = data.email;
-    if (data.workPhone !== undefined) backendData.employmentDetails.workPhone = data.workPhone;
-    if (data.hireDate !== undefined) backendData.employmentDetails.hireDate = data.hireDate;
+    if (workPhone !== undefined) backendData.employmentDetails.workPhone = workPhone;
+    if (joinDate !== undefined) backendData.employmentDetails.hireDate = joinDate;
     if (data.employmentType !== undefined) backendData.employmentDetails.employmentType = data.employmentType;
-    if (data.workLocation !== undefined) backendData.employmentDetails.workLocation = data.workLocation;
+    if (workLocation !== undefined) backendData.employmentDetails.workLocation = workLocation;
     if (data.manager !== undefined) backendData.employmentDetails.manager = data.manager;
   }
   
@@ -86,7 +104,7 @@ const transformToBackend = (data) => {
   }
   
   // Personal Info
-  if (data.dateOfBirth || data.gender || data.phone || data.location) {
+  if (data.dateOfBirth || data.gender || data.maritalStatus || data.nationality || data.address || data.emergencyContact) {
     backendData.personalInfo = {};
     if (data.dateOfBirth !== undefined) backendData.personalInfo.dateOfBirth = data.dateOfBirth;
     if (data.gender !== undefined) backendData.personalInfo.gender = data.gender;
@@ -94,14 +112,6 @@ const transformToBackend = (data) => {
     if (data.nationality !== undefined) backendData.personalInfo.nationality = data.nationality;
     if (data.address !== undefined) backendData.personalInfo.address = data.address;
     if (data.emergencyContact !== undefined) backendData.personalInfo.emergencyContact = data.emergencyContact;
-    
-    // Handle derived fields
-    if (data.location && !data.address) {
-      backendData.personalInfo.address = { city: data.location };
-    }
-    if (data.phone && !data.emergencyContact) {
-      backendData.personalInfo.emergencyContact = { phone: data.phone };
-    }
   }
   
   // Arrays
@@ -149,6 +159,7 @@ const employeeService = {
       
       return {
         data: transformedEmployees,
+        total: pagination.total || transformedEmployees.length,
         pagination: {
           page: pagination.page || 1,
           limit: pagination.limit || 10,
@@ -193,15 +204,6 @@ const employeeService = {
         backendData.user = data.userId;
       }
       
-      // Add user profile data if creating new user
-      if (data.name) {
-        const nameParts = data.name.trim().split(' ');
-        backendData.userProfile = {
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || ''
-        };
-      }
-      
       console.log('Sending to backend:', backendData); // Debug
       
       const response = await api.post('/employees', backendData);
@@ -212,7 +214,8 @@ const employeeService = {
       
       return {
         success: true,
-        data: transformedEmployee
+        data: transformedEmployee,
+        meta: response.data?.meta
       };
     } catch (error) {
       console.error('Create employee error:', error);
@@ -276,9 +279,13 @@ const employeeService = {
   getHierarchy: async () => {
     try {
       const response = await api.get('/employees/hierarchy');
+      const hierarchyData = response.data?.data || response.data;
+      const normalized = Array.isArray(hierarchyData)
+        ? { name: 'Organization', position: 'Hierarchy', children: hierarchyData }
+        : hierarchyData;
       return {
         success: true,
-        data: response.data?.data || response.data
+        data: normalized
       };
     } catch (error) {
       console.error('Get hierarchy error:', error);
@@ -287,11 +294,9 @@ const employeeService = {
   },
   
   // Bulk import
-  bulkImport: async (formData) => {
+  bulkImport: async (employees) => {
     try {
-      const response = await api.post('/employees/bulk/import', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/employees/bulk/import', { employees });
       return {
         success: true,
         data: response.data?.data || response.data

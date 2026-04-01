@@ -16,5 +16,7 @@ router.get(
   dashboardController.getSalaryDistribution,
 );
 router.get("/recent-activity", dashboardController.getRecentActivity);
+router.get("/attendance", dashboardController.getAttendanceStats);
+router.get("/department-metrics", dashboardController.getDepartmentMetrics);
 
 export default router;

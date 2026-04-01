@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useMemo } from 'react';
+import { createContext, useContext, useCallback, useMemo, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from './ToastContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ export const useAuthContext = () => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, login, logout, register, updateProfile } = useAuthStore();
+  const { user, isAuthenticated, isLoading, login, logout, register, updateProfile, checkAuth } = useAuthStore();
   const { success: showSuccess, error: showError } = useToast();
 
   const handleLogin = useCallback(async (email, password, rememberMe = false) => {
@@ -77,6 +77,10 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: error.message };
     }
   }, [updateProfile, showSuccess, showError]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const value = useMemo(() => ({
     user,

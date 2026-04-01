@@ -10,22 +10,30 @@ class EmailService {
     });
   }
 
-  async sendWelcomeEmail(email, name) {
+  async sendWelcomeEmail(email, name, tempPassword) {
     const subject = 'Welcome to EMS';
+    const passwordBlock = tempPassword
+      ? `<p>Your temporary password is: <strong>${tempPassword}</strong></p>
+         <p>Please log in and change it immediately.</p>`
+      : '';
     const html = `
       <h1>Welcome ${name}!</h1>
       <p>Thank you for joining our Employee Management System.</p>
       <p>You can now login to access your dashboard and manage your profile.</p>
+      ${passwordBlock}
     `;
 
     return this.sendEmail(email, subject, html);
   }
 
-  async sendPasswordResetEmail(email, resetToken) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  async sendPasswordResetEmail(email, nameOrToken, maybeToken) {
+    const name = maybeToken ? nameOrToken : null;
+    const resetToken = maybeToken || nameOrToken;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     const subject = 'Password Reset Request';
     const html = `
       <h1>Password Reset</h1>
+      <p>Hello ${name || 'there'},</p>
       <p>You requested to reset your password.</p>
       <p>Click the link below to reset your password:</p>
       <a href="${resetUrl}">${resetUrl}</a>
@@ -36,10 +44,11 @@ class EmailService {
     return this.sendEmail(email, subject, html);
   }
 
-  async sendPasswordChangeNotification(email) {
+  async sendPasswordChangeNotification(email, name) {
     const subject = 'Password Changed Successfully';
     const html = `
       <h1>Password Changed</h1>
+      <p>Hello ${name || 'there'},</p>
       <p>Your password has been changed successfully.</p>
       <p>If you didn't make this change, please contact support immediately.</p>
     `;

@@ -27,7 +27,7 @@ const EmployeeDocuments = ({ documents = [], onUpload, onDelete, readOnly = fals
     disabled: readOnly,
   });
   
-  const getFileIcon = (type) => {
+  const getFileIcon = (type = '') => {
     if (type.includes('pdf')) return <FiFileText className="text-error-500" />;
     if (type.includes('image')) return <FiImage className="text-primary-500" />;
     if (type.includes('zip') || type.includes('archive')) return <FiArchive className="text-warning-500" />;
@@ -36,6 +36,7 @@ const EmployeeDocuments = ({ documents = [], onUpload, onDelete, readOnly = fals
   
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
+    if (!bytes) return 'Unknown size';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -83,7 +84,7 @@ const EmployeeDocuments = ({ documents = [], onUpload, onDelete, readOnly = fals
                 <div>
                   <p className="text-sm font-medium text-secondary-900">{doc.name}</p>
                   <p className="text-xs text-secondary-500">
-                    {formatFileSize(doc.size)} • Uploaded {formatDate(doc.uploadedAt)}
+                    {formatFileSize(doc.size)} - Uploaded {formatDate(doc.uploadedAt)}
                   </p>
                 </div>
               </div>
@@ -131,3 +132,4 @@ const EmployeeDocuments = ({ documents = [], onUpload, onDelete, readOnly = fals
 };
 
 export default EmployeeDocuments;
+

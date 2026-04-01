@@ -220,7 +220,7 @@ export const EmployeeProvider = ({ children }) => {
       const response = await employeeService.createEmployee(employeeData);
       dispatch({ type: ACTIONS.ADD_EMPLOYEE, payload: response.data });
       showSuccess('Employee created successfully');
-      return { success: true, data: response.data };
+      return { success: true, data: response.data, meta: response.meta };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to create employee';
       dispatch({ type: ACTIONS.SET_ERROR, payload: errorMessage });
@@ -268,15 +268,15 @@ export const EmployeeProvider = ({ children }) => {
   }, [showSuccess, showError]);
 
   // Bulk import employees
-  const bulkImport = useCallback(async (file) => {
+  const bulkImport = useCallback(async (employees) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await employeeService.bulkImport(formData);
+      const response = await employeeService.bulkImport(employees);
       await loadEmployees();
-      showSuccess(`${response.data.count} employees imported successfully`);
+      const successCount = response.data?.success?.length || 0;
+      const failedCount = response.data?.failed?.length || 0;
+      showSuccess(`Import completed: ${successCount} succeeded, ${failedCount} failed`);
       return { success: true, data: response.data };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to import employees';

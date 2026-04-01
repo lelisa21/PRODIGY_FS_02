@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPlus, FiSearch, FiFilter, FiDownload, FiUpload, FiX } from 'react-icons/fi';
@@ -10,7 +10,7 @@ import EmployeeForm from '../components/employee/EmployeeForm';
 import { useEmployeeContext } from '../context/EmployeeContext';
 import { useToast } from '../context/ToastContext';
 import { FadeIn, SlideIn, StaggerChildren } from '../components/animations';
-import { exportToCSV } from '../utils/exportHelpers';
+import { exportToCSV, importFromCSV, importFromExcel } from '../utils/exportHelpers';
 
 const Employees = () => {
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ const Employees = () => {
     filters,
     pagination,
     deleteEmployee,
+    bulkImport,
     setFilters,
     setPagination,
     loadEmployees,
@@ -31,6 +32,8 @@ const Employees = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef(null);
   const [localFilters, setLocalFilters] = useState({
     department: '',
     status: '',
@@ -89,6 +92,47 @@ const Employees = () => {
   const handleExport = () => {
     exportToCSV(employees, 'employees.csv');
     showSuccess('Export started');
+  };
+
+  const normalizeImportRow = (row) => {
+    const normalized = { ...row };
+    if (normalized.name && (!normalized.firstName || !normalized.lastName)) {
+      const [firstName, ...lastName] = String(normalized.name).trim().split(' ');
+      normalized.firstName = normalized.firstName || firstName;
+      normalized.lastName = normalized.lastName || lastName.join(' ');
+    }
+    if (!normalized.email && normalized.workEmail) {
+      normalized.email = normalized.workEmail;
+    }
+    if (normalized.salary !== undefined) {
+      const parsed = Number(normalized.salary);
+      normalized.salary = Number.isNaN(parsed) ? 0 : parsed;
+    }
+    return normalized;
+  };
+
+  const handleImport = async (file) => {
+    setIsImporting(true);
+    try {
+      const isCsv = file.name.toLowerCase().endsWith('.csv');
+      const data = isCsv ? await importFromCSV(file) : await importFromExcel(file);
+      const cleaned = data
+        .map(normalizeImportRow)
+        .filter((row) => row && (row.email || row.workEmail));
+      if (cleaned.length === 0) {
+        showError('No valid rows found in the file.');
+        return;
+      }
+      const result = await bulkImport(cleaned);
+      if (result.success) {
+        showSuccess('Import completed successfully');
+        loadEmployees();
+      }
+    } catch (error) {
+      showError('Import failed. Please check your file format.');
+    } finally {
+      setIsImporting(false);
+    }
   };
   
   const handleModalClose = () => {
@@ -154,13 +198,27 @@ const Employees = () => {
               >
                 Filter
               </Button>
-              <Button
-                variant="outline"
-                icon={<FiUpload />}
-                onClick={() => {/* Handle import */}}
-              >
-                Import
-              </Button>
+            <Button
+              variant="outline"
+              icon={<FiUpload />}
+              onClick={() => fileInputRef.current?.click()}
+              isLoading={isImporting}
+            >
+              Import
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleImport(file);
+                }
+                e.target.value = '';
+              }}
+            />
             </div>
           </div>
           

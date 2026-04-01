@@ -1,4 +1,5 @@
 import Employee from '../models/Employee.model.js';
+import ActivityLog from '../models/ActivityLog.model.js';
 
 class DashboardService {
   async getStats() {
@@ -7,21 +8,41 @@ class DashboardService {
       activeEmployees,
       departmentStats,
       recentHires,
-      attendanceStats
+      attendanceStats,
+      payrollStats,
+      ratingStats
     ] = await Promise.all([
       Employee.countDocuments(),
       Employee.countDocuments({ status: 'active' }),
       this.getDepartmentDistribution(),
       this.getRecentHires(5),
-      this.getAttendanceSummary()
+      this.getAttendanceSummary(),
+      Employee.aggregate([
+        { $group: { _id: null, totalPayroll: { $sum: '$compensation.salary' } } }
+      ]),
+      Employee.aggregate([
+        { $group: { _id: null, avgRating: { $avg: '$performance.currentRating' } } }
+      ])
     ]);
 
+    const totalPayroll = payrollStats[0]?.totalPayroll || 0;
+    const avgRating = ratingStats[0]?.avgRating || 0;
+    const averagePerformance = avgRating ? Math.round((avgRating / 5) * 1000) / 10 : 0;
+
     return {
+      totalEmployees,
+      activeEmployees,
+      inactiveEmployees: totalEmployees - activeEmployees,
+      averagePerformance,
+      totalPayroll,
+      departmentCount: departmentStats.length,
       overview: {
         totalEmployees,
         activeEmployees,
         inactiveEmployees: totalEmployees - activeEmployees,
-        departmentCount: departmentStats.length
+        departmentCount: departmentStats.length,
+        averagePerformance,
+        totalPayroll
       },
       departmentDistribution: departmentStats,
       recentHires,
@@ -111,37 +132,46 @@ class DashboardService {
   }
 
   async getPerformanceMetrics() {
-    const metrics = await Employee.aggregate([
+    const reviewMetrics = await Employee.aggregate([
+      { $unwind: '$performance.reviews' },
       {
         $group: {
-          _id: '$employmentDetails.department',
-          avgRating: { $avg: '$performance.currentRating' },
-          employees: { $sum: 1 },
-          topPerformers: {
-            $sum: {
-              $cond: [{ $gte: ['$performance.currentRating', 4.5] }, 1, 0]
-            }
-          }
+          _id: {
+            $dateToString: { format: '%Y-%m', date: '$performance.reviews.date' }
+          },
+          avgRating: { $avg: '$performance.reviews.rating' }
         }
       },
-      {
-        $project: {
-          department: '$_id',
-          avgRating: { $round: ['$avgRating', 1] },
-          employees: 1,
-          topPerformers: 1,
-          performanceRate: {
-            $round: [
-              { $multiply: [{ $divide: ['$topPerformers', '$employees'] }, 100] },
-              1
-            ]
-          }
-        }
-      },
-      { $sort: { avgRating: -1 } }
+      { $sort: { _id: 1 } }
     ]);
 
-    return metrics;
+    const avgCurrentRatingAgg = await Employee.aggregate([
+      { $group: { _id: null, avgRating: { $avg: '$performance.currentRating' } } }
+    ]);
+    const avgCurrentRating = avgCurrentRatingAgg[0]?.avgRating || 0;
+    const fallbackPerformance = avgCurrentRating ? Math.round((avgCurrentRating / 5) * 100) : 0;
+
+    const lastMonths = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i -= 1) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = date.toISOString().slice(0, 7);
+      const label = date.toLocaleString('en-US', { month: 'short' });
+      lastMonths.push({ key, label });
+    }
+
+    const reviewMap = new Map(
+      reviewMetrics.map(item => [item._id, item.avgRating])
+    );
+
+    return lastMonths.map(({ key, label }) => {
+      const rating = reviewMap.get(key);
+      const performance = rating
+        ? Math.round((rating / 5) * 100)
+        : fallbackPerformance;
+      const target = Math.min(100, Math.max(80, performance + 5));
+      return { month: label, performance, target };
+    });
   }
 
   async getSalaryDistribution() {
@@ -166,7 +196,81 @@ class DashboardService {
       })
     );
 
-    return distribution;
+    const departments = await this.getDepartmentDistribution();
+    const departmentPie = departments.map((dept) => ({
+      name: dept.department || 'Unassigned',
+      value: dept.count
+    }));
+
+    return {
+      ranges: distribution,
+      departments: departmentPie
+    };
+  }
+
+  async getAttendanceStats() {
+    return this.getAttendanceSummary();
+  }
+
+  async getDepartmentMetrics() {
+    const metrics = await Employee.aggregate([
+      {
+        $group: {
+          _id: '$employmentDetails.department',
+          totalEmployees: { $sum: 1 },
+          activeEmployees: {
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+          },
+          avgSalary: { $avg: '$compensation.salary' },
+          avgRating: { $avg: '$performance.currentRating' }
+        }
+      },
+      {
+        $project: {
+          department: '$_id',
+          totalEmployees: 1,
+          activeEmployees: 1,
+          avgSalary: { $round: ['$avgSalary', 2] },
+          avgRating: { $round: ['$avgRating', 1] }
+        }
+      },
+      { $sort: { totalEmployees: -1 } }
+    ]);
+
+    return metrics;
+  }
+
+  async getRecentActivity(limit = 10) {
+    const activities = await ActivityLog.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('user', 'profile email')
+      .lean();
+
+    const actionMap = {
+      CREATE: 'create',
+      UPDATE: 'update',
+      DELETE: 'delete',
+      LOGIN: 'default',
+      LOGOUT: 'default',
+      VIEW: 'default'
+    };
+
+    return activities.map(activity => {
+      const userName = activity.user?.profile
+        ? `${activity.user.profile.firstName} ${activity.user.profile.lastName}`.trim()
+        : activity.user?.email || 'System';
+      const resource = activity.resource?.toLowerCase() || 'record';
+      const action = activity.action?.toLowerCase() || 'updated';
+
+      return {
+        id: activity._id,
+        type: actionMap[activity.action] || 'default',
+        description: activity.details?.description || `${userName} ${action} ${resource}`,
+        timestamp: activity.createdAt,
+        user: userName
+      };
+    });
   }
 }
 

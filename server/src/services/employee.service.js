@@ -1,14 +1,65 @@
+import crypto from "crypto";
 import Employee from "../models/Employee.model.js";
 import User from "../models/user.model.js";
 import redisClient from "../config/redis.js";
 import logger from "../utils/logger.js";
 import AppError from "../utils/appError.js";
+import emailService from "./email.service.js";
 
 class EmployeeService {
   async createEmployee(employeeData) {
-    const user = await User.findById(employeeData.user);
-    if (!user) {
-      throw new AppError("User not found", 404);
+    let user = null;
+    let tempPassword = null;
+
+    if (employeeData.user) {
+      user = await User.findById(employeeData.user);
+      if (!user) {
+        throw new AppError("User not found", 404);
+      }
+    } else if (employeeData.userProfile) {
+      const email =
+        employeeData.userEmail ||
+        employeeData.userProfile.email ||
+        employeeData.employmentDetails?.workEmail;
+
+      if (!email) {
+        throw new AppError("User email is required", 400);
+      }
+
+      user = await User.findOne({ email });
+
+      if (!user) {
+        tempPassword =
+          employeeData.userPassword || this.generateTempPassword();
+
+        user = await User.create({
+          email,
+          password: tempPassword,
+          profile: {
+            firstName: employeeData.userProfile.firstName,
+            lastName: employeeData.userProfile.lastName,
+            phone: employeeData.userProfile.phone,
+            avatar: employeeData.userProfile.avatar,
+          },
+          role: employeeData.userRole || "employee",
+        });
+
+        try {
+          await emailService.sendWelcomeEmail(
+            user.email,
+            user.profile.firstName,
+            tempPassword,
+          );
+        } catch (error) {
+          logger.warn(`Welcome email failed for ${user.email}: ${error.message}`);
+        }
+      }
+
+      employeeData.user = user._id;
+    }
+
+    if (!employeeData.user) {
+      throw new AppError("User is required to create an employee", 400);
     }
 
     const existingEmployee = await Employee.findOne({
@@ -23,16 +74,36 @@ class EmployeeService {
         await this.generateEmployeeId();
     }
 
-    const employee = await Employee.create(employeeData);
+    if (!employeeData.employmentDetails?.workEmail && user?.email) {
+      employeeData.employmentDetails = {
+        ...employeeData.employmentDetails,
+        workEmail: user.email,
+      };
+    }
 
-    user.employeeDetails = {
-      ...user.employeeDetails,
-      employeeId: employee.employmentDetails.employeeId,
-      department: employee.employmentDetails.department,
-      position: employee.employmentDetails.position,
-      joinDate: employee.employmentDetails.hireDate,
-    };
-    await user.save();
+    if (!employeeData.compensation) {
+      employeeData.compensation = { salary: 0 };
+    }
+
+    // Remove non-employee fields
+    delete employeeData.userProfile;
+    delete employeeData.userEmail;
+    delete employeeData.userPassword;
+    delete employeeData.userRole;
+
+    let employee = await Employee.create(employeeData);
+    employee = await employee.populate("user", "email profile role status");
+
+    if (user) {
+      user.employeeDetails = {
+        ...user.employeeDetails,
+        employeeId: employee.employmentDetails.employeeId,
+        department: employee.employmentDetails.department,
+        position: employee.employmentDetails.position,
+        joinDate: employee.employmentDetails.hireDate,
+      };
+      await user.save();
+    }
 
     // Cache employee
     await redisClient.setEx(
@@ -43,7 +114,7 @@ class EmployeeService {
 
     logger.info(`Employee created: ${employee.employmentDetails.employeeId}`);
 
-    return employee;
+    return { employee, tempPassword };
   }
 
   async getEmployeeById(id, options = {}) {
@@ -136,7 +207,12 @@ class EmployeeService {
   }
 
   async updateEmployee(id, updateData) {
-    const employee = await Employee.findByIdAndUpdate(
+    const { userProfile, userEmail } = updateData;
+
+    delete updateData.userProfile;
+    delete updateData.userEmail;
+
+    let employee = await Employee.findByIdAndUpdate(
       id,
       { $set: updateData },
       { new: true, runValidators: true },
@@ -144,6 +220,27 @@ class EmployeeService {
 
     if (!employee) {
       throw new AppError("Employee not found", 404);
+    }
+
+    if (userProfile || userEmail) {
+      const userUpdate = {};
+      if (userEmail) {
+        userUpdate.email = userEmail;
+      }
+      if (userProfile) {
+        userUpdate.profile = {
+          ...employee.user.profile,
+          ...userProfile,
+        };
+      }
+      await User.findByIdAndUpdate(employee.user._id, userUpdate, {
+        new: true,
+        runValidators: true,
+      });
+      employee = await Employee.findById(employee._id).populate(
+        "user",
+        "email profile role",
+      );
     }
 
     // Update cache
@@ -284,6 +381,11 @@ class EmployeeService {
     return employeeId;
   }
 
+  generateTempPassword() {
+    const token = crypto.randomBytes(4).toString("hex");
+    return `Temp${token}!`;
+  }
+
   async bulkImport(employeesData) {
     const results = {
       success: [],
@@ -314,7 +416,7 @@ class EmployeeService {
         }
 
         // Create employee
-        const employee = await this.createEmployee({
+        const result = await this.createEmployee({
           user: empData.user,
           employmentDetails: {
             employeeId: empData.employeeId,
@@ -338,7 +440,7 @@ class EmployeeService {
         });
 
         results.success.push({
-          employeeId: employee.employmentDetails.employeeId,
+          employeeId: result.employee.employmentDetails.employeeId,
           email: empData.email,
         });
       } catch (error) {

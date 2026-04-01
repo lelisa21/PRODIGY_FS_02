@@ -73,7 +73,8 @@ const employeeSchema = new mongoose.Schema({
     salary: { 
       type: Number, 
       min: 0,
-      required: true 
+      required: true,
+      default: 0
     },
     payFrequency: { 
       type: String, 

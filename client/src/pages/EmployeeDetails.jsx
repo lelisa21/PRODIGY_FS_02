@@ -9,6 +9,7 @@ import EmployeeDocuments from '../components/employee/EmployeeDocuments';
 import { useEmployeeContext } from '../context/EmployeeContext';
 import { useToast } from '../context/ToastContext';
 import { FadeIn, SlideIn } from '../components/animations';
+import employeeService from '../services/employee.service';
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -56,11 +57,23 @@ const EmployeeDetails = () => {
   };
   
   const handleDocumentsUpload = async (files) => {
-    showSuccess('Documents uploaded successfully');
+    try {
+      await Promise.all(files.map((file) => employeeService.uploadDocument(id, file)));
+      showSuccess('Documents uploaded successfully');
+      await loadEmployeeById(id);
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to upload documents');
+    }
   };
   
   const handleDocumentDelete = async (docId) => {
-    showSuccess('Document deleted successfully');
+    try {
+      await employeeService.deleteDocument(id, docId);
+      showSuccess('Document deleted successfully');
+      await loadEmployeeById(id);
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to delete document');
+    }
   };
   
   const tabs = [

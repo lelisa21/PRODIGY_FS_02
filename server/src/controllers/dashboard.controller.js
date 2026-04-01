@@ -30,10 +30,29 @@ class DashboardController {
   });
 
   getRecentActivity = catchAsync(async (req, res) => {
-    
+    const activity = await dashboardService.getRecentActivity();
+
     res.status(200).json({
       success: true,
-      data: []
+      data: activity
+    });
+  });
+
+  getAttendanceStats = catchAsync(async (req, res) => {
+    const attendance = await dashboardService.getAttendanceStats();
+
+    res.status(200).json({
+      success: true,
+      data: attendance
+    });
+  });
+
+  getDepartmentMetrics = catchAsync(async (req, res) => {
+    const metrics = await dashboardService.getDepartmentMetrics();
+
+    res.status(200).json({
+      success: true,
+      data: metrics
     });
   });
 }

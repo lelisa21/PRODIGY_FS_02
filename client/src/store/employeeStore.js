@@ -58,7 +58,7 @@ export const useEmployeeStore = create((set, get) => ({
     try {
       const response = await employeeService.createEmployee(data);
       set({ isLoading: false });
-      return { success: true, data: response.data };
+      return { success: true, data: response.data, meta: response.meta };
     } catch (error) {
       set({
         isLoading: false,

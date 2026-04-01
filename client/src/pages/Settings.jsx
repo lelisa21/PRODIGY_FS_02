@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiBell, FiMoon, FiSun, FiGlobe, FiLock, FiUser } from 'react-icons/fi';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { useToast } from '../context/ToastContext';
 import { FadeIn, SlideIn } from '../components/animations';
+import { useTheme } from '../context/ThemeContext';
+import authService from '../services/auth.service';
 
 const Settings = () => {
-  const { success: showSuccess } = useToast();
-  const [darkMode, setDarkMode] = useState(false);
+  const { success: showSuccess, error: showError } = useToast();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [darkMode, setDarkMode] = useState(isDarkMode);
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -19,24 +22,47 @@ const Settings = () => {
     confirm: '',
   });
   
+  useEffect(() => {
+    setDarkMode(isDarkMode);
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('notificationSettings');
+    if (stored) {
+      try {
+        setNotifications(JSON.parse(stored));
+      } catch {
+        // ignore invalid stored value
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('notificationSettings', JSON.stringify(notifications));
+  }, [notifications]);
+
   const handleNotificationChange = (type) => {
     setNotifications({ ...notifications, [type]: !notifications[type] });
     showSuccess('Notification settings updated');
   };
   
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwordData.new !== passwordData.confirm) {
       showError('Passwords do not match');
       return;
     }
-    // Handle password change logic
-    showSuccess('Password updated successfully');
-    setPasswordData({ current: '', new: '', confirm: '' });
+    try {
+      await authService.changePassword(passwordData.current, passwordData.new);
+      showSuccess('Password updated successfully');
+      setPasswordData({ current: '', new: '', confirm: '' });
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to update password');
+    }
   };
   
   const handleThemeChange = () => {
-    setDarkMode(!darkMode);
+    toggleTheme();
     showSuccess('Theme updated');
   };
   
