@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
       const result = await login(email, password, rememberMe);
       if (result.success) {
         showSuccess('Welcome back! Login successful');
-        navigate('/dashboard');
+        navigate('/app/dashboard');
         return { success: true };
       } else {
         showError(result.error || 'Login failed');

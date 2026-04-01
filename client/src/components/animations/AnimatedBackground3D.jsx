@@ -44,7 +44,7 @@ const AnimatedBackground3D = () => {
       />
       
       <motion.div
-        className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-secondary-500/10 to-primary-400/10 blur-3xl"
+        className="absolute bottom-1/4 right-1/4 w-150px h-150px rounded-full bg-gradient-to-r from-secondary-500/10 to-primary-400/10 blur-3xl"
         animate={{
           x: [0, -100, 50, 0],
           y: [0, 50, -100, 0],
@@ -58,18 +58,18 @@ const AnimatedBackground3D = () => {
       
       {/* 3D rotating cube effect */}
       <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="absolute -z-40 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d"
         }}
       >
-        <div className="relative w-[400px] h-[400px]">
+        <div className="relative w-100 h-50">
           {[...Array(3)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute inset-0 border-2 border-primary-500/30 rounded-2xl"
+              className="absolute inset-0 border-2 border-b-blue-700 rounded-2xl"
               style={{
                 rotateX: i * 30,
                 rotateY: i * 45,
@@ -93,7 +93,7 @@ const AnimatedBackground3D = () => {
       {[...Array(50)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-primary-500/40 rounded-full"
+          className="absolute w-1 h-1 bg-blue-500/30 rounded-full"
           initial={{
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,

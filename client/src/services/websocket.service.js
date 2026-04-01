@@ -7,8 +7,9 @@ class WebSocketService {
   }
 
   connect() {
+    if (this.socket) return;
     const token = localStorage.getItem('accessToken');
-    this.socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:3000', {
+    this.socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5500', {
       auth: { token },
       transports: ['websocket'],
     });
@@ -36,6 +37,10 @@ class WebSocketService {
 
     this.socket.on('attendance-updated', (data) => {
       this.emitEvent('attendance-updated', data);
+    });
+
+    this.socket.on('message:new', (data) => {
+      this.emitEvent('message:new', data);
     });
   }
 

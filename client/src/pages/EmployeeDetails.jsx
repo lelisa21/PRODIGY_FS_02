@@ -10,6 +10,7 @@ import { useEmployeeContext } from '../context/EmployeeContext';
 import { useToast } from '../context/ToastContext';
 import { FadeIn, SlideIn } from '../components/animations';
 import employeeService from '../services/employee.service';
+import { useAuthStore } from '../store/authStore';
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -21,6 +22,9 @@ const EmployeeDetails = () => {
     updateEmployee, 
     deleteEmployee 
   } = useEmployeeContext();
+  const role = useAuthStore((state) => state.user?.role || 'employee');
+  const canEdit = ['admin', 'manager'].includes(role);
+  const canDelete = role === 'admin';
   const { success: showSuccess, error: showError } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -45,7 +49,7 @@ const EmployeeDetails = () => {
       const result = await deleteEmployee(id);
       if (result.success) {
         showSuccess('Employee deleted successfully');
-        navigate('/employees');
+        navigate('/app/employees');
       } else {
         showError(result.error);
       }
@@ -122,7 +126,7 @@ const EmployeeDetails = () => {
     return (
       <div className="p-8 text-center">
         <p className="text-secondary-500">Employee not found</p>
-        <Button onClick={() => navigate('/employees')} className="mt-4">
+        <Button onClick={() => navigate('/app/employees')} className="mt-4">
           Back to Employees
         </Button>
       </div>
@@ -136,48 +140,52 @@ const EmployeeDetails = () => {
           <Button
             variant="ghost"
             icon={<FiArrowLeft />}
-            onClick={() => navigate('/employees')}
+            onClick={() => navigate('/app/employees')}
           >
             Back
           </Button>
           
           <div className="flex gap-3">
-            {!isEditing ? (
-              <Button
-                variant="outline"
-                icon={<FiEdit2 />}
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Profile
-              </Button>
-            ) : (
-              <>
+            {canEdit && (
+              !isEditing ? (
                 <Button
                   variant="outline"
-                  icon={<FiX />}
-                  onClick={() => setIsEditing(false)}
+                  icon={<FiEdit2 />}
+                  onClick={() => setIsEditing(true)}
                 >
-                  Cancel
+                  Edit Profile
                 </Button>
-                <Button
-                  variant="primary"
-                  icon={<FiSave />}
-                  onClick={() => {
-                    // Trigger save from profile component
-                    window.dispatchEvent(new Event('saveEmployee'));
-                  }}
-                >
-                  Save Changes
-                </Button>
-              </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    icon={<FiX />}
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    icon={<FiSave />}
+                    onClick={() => {
+                      // Trigger save from profile component
+                      window.dispatchEvent(new Event('saveEmployee'));
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </>
+              )
             )}
-            <Button
-              variant="danger"
-              icon={<FiTrash2 />}
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
+            {canDelete && (
+              <Button
+                variant="danger"
+                icon={<FiTrash2 />}
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            )}
           </div>
         </div>
       </FadeIn>

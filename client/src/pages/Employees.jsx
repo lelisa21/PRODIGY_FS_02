@@ -11,6 +11,7 @@ import { useEmployeeContext } from '../context/EmployeeContext';
 import { useToast } from '../context/ToastContext';
 import { FadeIn, SlideIn, StaggerChildren } from '../components/animations';
 import { exportToCSV, importFromCSV, importFromExcel } from '../utils/exportHelpers';
+import { useAuthStore } from '../store/authStore';
 
 const Employees = () => {
   const navigate = useNavigate();
@@ -27,6 +28,11 @@ const Employees = () => {
     loadEmployees,
     resetFilters,
   } = useEmployeeContext();
+
+  const role = useAuthStore((state) => state.user?.role || 'employee');
+  const canCreate = role === 'admin';
+  const canImport = role === 'admin';
+  const canDelete = role === 'admin';
   
   const { success: showSuccess, error: showError } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,7 +92,7 @@ const Employees = () => {
   };
   
   const handleView = (employee) => {
-    navigate(`/employees/${employee.id}`);
+    navigate(`/app/employees/${employee.id}`);
   };
   
   const handleExport = () => {
@@ -166,13 +172,15 @@ const Employees = () => {
             >
               Export
             </Button>
-            <Button
-              variant="primary"
-              icon={<FiPlus />}
-              onClick={() => setIsModalOpen(true)}
-            >
-              Add Employee
-            </Button>
+            {canCreate && (
+              <Button
+                variant="primary"
+                icon={<FiPlus />}
+                onClick={() => setIsModalOpen(true)}
+              >
+                Add Employee
+              </Button>
+            )}
           </div>
         </div>
       </FadeIn>
@@ -198,14 +206,15 @@ const Employees = () => {
               >
                 Filter
               </Button>
-            <Button
-              variant="outline"
-              icon={<FiUpload />}
-              onClick={() => fileInputRef.current?.click()}
-              isLoading={isImporting}
-            >
-              Import
-            </Button>
+              <Button
+                variant="outline"
+                icon={<FiUpload />}
+                onClick={() => fileInputRef.current?.click()}
+                isLoading={isImporting}
+                disabled={!canImport}
+              >
+                Import
+              </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -213,7 +222,7 @@ const Employees = () => {
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) {
+                if (file && canImport) {
                   handleImport(file);
                 }
                 e.target.value = '';
@@ -276,7 +285,7 @@ const Employees = () => {
             currentPage={pagination.page}
             onPageChange={handlePageChange}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={canDelete ? handleDelete : undefined}
             onView={handleView}
           />
         </div>

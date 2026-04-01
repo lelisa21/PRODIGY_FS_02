@@ -26,9 +26,9 @@ const AnimatedBackground = () => {
         Math.cos(gradientOffset + Math.PI) * 100 + canvas.height / 2
       );
       
-      gradient.addColorStop(0, 'rgba(249, 161, 85, 0.05)');
+      gradient.addColorStop(0, 'rgba(249, 161, 255, 0.05)');
       gradient.addColorStop(0.5, 'rgba(132, 134, 56, 0.05)');
-      gradient.addColorStop(1, 'rgba(216, 106, 42, 0.05)');
+      gradient.addColorStop(1, 'rgba(216, 16, 42, 0.05)');
       
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);

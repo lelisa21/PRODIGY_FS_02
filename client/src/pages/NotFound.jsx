@@ -31,7 +31,7 @@ const NotFound = () => {
           Oops! The page you're looking for doesn't exist or has been moved.
         </p>
         
-        <Link to="/dashboard">
+        <Link to="/app/dashboard">
           <Button variant="primary" size="lg" icon={<FiHome />}>
             Back to Dashboard
           </Button>

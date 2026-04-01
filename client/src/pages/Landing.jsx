@@ -286,8 +286,8 @@ const Landing = () => {
       </section>
 
       {/* 3D Rope Animation Section */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-secondary-500/5" />
+      <section className="relative py-10 overflow-hidden">
+        <div className="absolute inset-0 bg-white-200" />
         <RopeAnimation3D />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 text-center">
@@ -412,7 +412,7 @@ const RopeAnimation3D = () => {
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
-      canvas.height = 400;
+      canvas.height = 200;
     };
 
     class RopePoint {
@@ -439,10 +439,10 @@ const RopeAnimation3D = () => {
       draw(ctx) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(249, 161, 85, ${0.3 + Math.sin(time * 2 + this.index * 0.1) * 0.2})`;
+        ctx.fillStyle = `rgba(249, 161, 185, ${0.3 + Math.sin(time * 2 + this.index * 0.1) * 0.2})`;
         ctx.fill();
         ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(249, 161, 85, 0.5)";
+        ctx.shadowColor = "rgba(249, 161, 185, 0.5)";
       }
     }
 
@@ -468,11 +468,11 @@ const RopeAnimation3D = () => {
         const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
         gradient.addColorStop(
           0,
-          `rgba(249, 161, 85, ${0.2 + Math.sin(time * 2 + i * 0.05) * 0.1})`,
+          `rgba(249, 161, 185, ${0.2 + Math.sin(time * 2 + i * 0.05) * 0.1})`,
         );
         gradient.addColorStop(
           1,
-          `rgba(232, 134, 56, ${0.2 + Math.cos(time * 2 + i * 0.05) * 0.1})`,
+          `rgba(232, 134, 156, ${0.2 + Math.cos(time * 2 + i * 0.05) * 0.1})`,
         );
 
         ctx.beginPath();
@@ -486,7 +486,7 @@ const RopeAnimation3D = () => {
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
-        ctx.strokeStyle = `rgba(249, 161, 85, 0.1)`;
+        ctx.strokeStyle = `rgba(249, 161, 185, 0.1)`;
         ctx.lineWidth = 6;
         ctx.stroke();
       }
@@ -529,7 +529,7 @@ const RopeAnimation3D = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="w-full h-[400px] pointer-events-none"
+      className="w-full h-100px pointer-events-none"
       style={{ background: "transparent" }}
     />
   );

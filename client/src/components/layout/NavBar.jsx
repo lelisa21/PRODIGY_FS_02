@@ -41,9 +41,9 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   };
 
   const navLinks = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/employees', label: 'Employees' },
-    { path: '/reports', label: 'Reports' },
+    { path: '/app/dashboard', label: 'Dashboard', roles: ['admin', 'manager', 'employee'] },
+    { path: '/app/employees', label: 'Employees', roles: ['admin', 'manager'] },
+    { path: '/app/reports', label: 'Reports', roles: ['admin', 'manager'] },
   ];
 
   return (
@@ -59,7 +59,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
             
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/app/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">EMS</span>
               </div>
@@ -70,7 +70,9 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1 ml-8">
-              {navLinks.map((link) => (
+              {navLinks
+                .filter((link) => link.roles?.includes(user?.role || 'employee'))
+                .map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -144,13 +146,13 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               <div className="py-2">
                 <DropdownItem
                   icon={<FiUser size={16} />}
-                  onClick={() => navigate('/profile')}
+                  onClick={() => navigate('/app/profile')}
                 >
                   Profile
                 </DropdownItem>
                 <DropdownItem
                   icon={<FiSettings size={16} />}
-                  onClick={() => navigate('/settings')}
+                  onClick={() => navigate('/app/settings')}
                 >
                   Settings
                 </DropdownItem>

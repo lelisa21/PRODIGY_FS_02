@@ -28,7 +28,7 @@ router.post('/:id/skills', restrictTo('admin', 'manager'), employeeController.ad
 router.patch('/:id/skills', restrictTo('admin', 'manager'), employeeController.updateEmployeeSkills); // NEW
 
 // Documents
-router.post('/:id/documents', restrictTo('admin', 'employee'), upload.single('document'), employeeController.uploadDocument);
-router.delete('/:id/documents/:documentId', restrictTo('admin', 'employee'), employeeController.deleteDocument); // NEW
+router.post('/:id/documents', restrictTo('admin', 'manager', 'employee'), upload.single('document'), employeeController.uploadDocument);
+router.delete('/:id/documents/:documentId', restrictTo('admin', 'manager', 'employee'), employeeController.deleteDocument); // NEW
 
 export default router;

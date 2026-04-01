@@ -1,9 +1,17 @@
 export { default as Login } from './Login';
 export { default as Register } from './Register';
+export { default as ForgotPassword } from './ForgotPassword';
+export { default as ResetPassword } from './ResetPassword';
 export { default as Dashboard } from './Dashboard';
 export { default as Employees } from './Employees';
 export { default as EmployeeDetails } from './EmployeeDetails';
+export { default as Departments } from './Departments';
+export { default as Attendance } from './Attendance';
+export { default as Performance } from './Performance';
+export { default as Documents } from './Documents';
+export { default as Messages } from './Messages';
 export { default as Profile } from './Profile';
 export { default as Settings } from './Settings';
 export { default as Reports } from './Reports';
 export { default as NotFound } from './NotFound';
+export { default as NotAuthorized } from './NotAuthorized';

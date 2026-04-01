@@ -18,19 +18,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     'User';
 
   const menuItems = [
-    { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
-    { path: '/employees', icon: FiUsers, label: 'Employees' },
-    { path: '/departments', icon: FiBriefcase, label: 'Departments' },
-    { path: '/attendance', icon: FiCalendar, label: 'Attendance' },
-    { path: '/performance', icon: FiTrendingUp, label: 'Performance' },
-    { path: '/reports', icon: FiBarChart2, label: 'Reports' },
-    { path: '/documents', icon: FiFileText, label: 'Documents' },
-    { path: '/messages', icon: FiMail, label: 'Messages' },
+    { path: '/app/dashboard', icon: FiHome, label: 'Dashboard', roles: ['admin', 'manager', 'employee'] },
+    { path: '/app/employees', icon: FiUsers, label: 'Employees', roles: ['admin', 'manager'] },
+    { path: '/app/departments', icon: FiBriefcase, label: 'Departments', roles: ['admin', 'manager'] },
+    { path: '/app/attendance', icon: FiCalendar, label: 'Attendance', roles: ['admin', 'manager'] },
+    { path: '/app/performance', icon: FiTrendingUp, label: 'Performance', roles: ['admin', 'manager'] },
+    { path: '/app/reports', icon: FiBarChart2, label: 'Reports', roles: ['admin', 'manager'] },
+    { path: '/app/documents', icon: FiFileText, label: 'Documents', roles: ['admin', 'manager'] },
+    { path: '/app/messages', icon: FiMail, label: 'Messages', roles: ['admin', 'manager', 'employee'] },
   ];
 
   const bottomMenuItems = [
-    { path: '/profile', icon: FiUser, label: 'Profile' },
-    { path: '/settings', icon: FiSettings, label: 'Settings' },
+    { path: '/app/profile', icon: FiUser, label: 'Profile', roles: ['admin', 'manager', 'employee'] },
+    { path: '/app/settings', icon: FiSettings, label: 'Settings', roles: ['admin', 'manager', 'employee'] },
   ];
 
   const handleLogout = async () => {
@@ -97,7 +97,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* Navigation Menu */}
           <nav className="flex-1 overflow-y-auto py-4">
             <div className="px-3 space-y-1">
-              {menuItems.map((item) => (
+              {menuItems
+                .filter((item) => item.roles?.includes(user?.role || 'employee'))
+                .map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
@@ -125,7 +127,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           {/* Bottom Menu */}
           <div className="border-t border-secondary-200 p-3 space-y-1">
-            {bottomMenuItems.map((item) => (
+            {bottomMenuItems
+              .filter((item) => item.roles?.includes(user?.role || 'employee'))
+              .map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

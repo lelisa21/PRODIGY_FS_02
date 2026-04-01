@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import  { useEffect, useRef } from 'react';
 
 const BackgroundAnimation = () => {
   const canvasRef = useRef(null);
@@ -37,7 +37,7 @@ const BackgroundAnimation = () => {
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(245, 160, 85, ${this.opacity})`;
+        ctx.fillStyle = `rgba(245, 160, 185, ${this.opacity})`;
         ctx.fill();
       }
     }

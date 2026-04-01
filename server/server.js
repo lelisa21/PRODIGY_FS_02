@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
+import http from "http";
 import mongoose from "mongoose";
 import app from "./src/app.js";
 import connectDB from "./src/config/database.js";
 import redisClient from "./src/config/redis.js";
 import logger from "./src/utils/logger.js";
+import { initSocket } from "./src/socket.js";
 
 dotenv.config();
 
@@ -29,7 +31,10 @@ const startServer = async () => {
     await redisClient.connect();
     logger.info(" Redis connected successfully");
 
-    const server = app.listen(PORT, () => {
+    const server = http.createServer(app);
+    initSocket(server);
+
+    server.listen(PORT, () => {
       logger.info(
         `Server running on port ${PORT} in ${process.env.NODE_ENV} mode`,
       );

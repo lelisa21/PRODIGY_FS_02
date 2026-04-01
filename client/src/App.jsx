@@ -25,6 +25,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
+import NotAuthorized from './pages/NotAuthorized';
 
 import './styles/globals.css';
 
@@ -63,7 +64,30 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
+  return !isAuthenticated ? children : <Navigate to="/app/dashboard" replace />;
+};
+
+const RoleRoute = ({ roles = [], children }) => {
+  const { isAuthenticated, isLoading, user } = useAuthContext();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const role = user?.role || 'employee';
+  if (roles.length > 0 && !roles.includes(role)) {
+    return <NotAuthorized />;
+  }
+
+  return children;
 };
 
 function App() {
@@ -77,7 +101,7 @@ function App() {
                 <EmployeeProvider>
                   <Routes>
                     {/* Public routes */}
-                    <Route path="/landing" element={<Landing />} />
+                    <Route path="/" element={<Landing />} />
                     
                     <Route path="/login" element={
                       <PublicRoute>
@@ -105,25 +129,53 @@ function App() {
 
                     {/* Protected routes with Layout */}
                     <Route
-                      path="/"
+                      path="/app"
                       element={
                         <PrivateRoute>
                           <Layout />
                         </PrivateRoute>
                       }
                     >
-                      <Route index element={<Navigate to="/dashboard" replace />} />
+                      <Route index element={<Navigate to="/app/dashboard" replace />} />
                       <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="employees" element={<Employees />} />
-                      <Route path="employees/:id" element={<EmployeeDetails />} />
-                      <Route path="departments" element={<Departments />} />
-                      <Route path="attendance" element={<Attendance />} />
-                      <Route path="performance" element={<Performance />} />
-                      <Route path="documents" element={<Documents />} />
+                      <Route path="employees" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Employees />
+                        </RoleRoute>
+                      } />
+                      <Route path="employees/:id" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <EmployeeDetails />
+                        </RoleRoute>
+                      } />
+                      <Route path="departments" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Departments />
+                        </RoleRoute>
+                      } />
+                      <Route path="attendance" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Attendance />
+                        </RoleRoute>
+                      } />
+                      <Route path="performance" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Performance />
+                        </RoleRoute>
+                      } />
+                      <Route path="documents" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Documents />
+                        </RoleRoute>
+                      } />
                       <Route path="messages" element={<Messages />} />
                       <Route path="profile" element={<Profile />} />
                       <Route path="settings" element={<Settings />} />
-                      <Route path="reports" element={<Reports />} />
+                      <Route path="reports" element={
+                        <RoleRoute roles={['admin', 'manager']}>
+                          <Reports />
+                        </RoleRoute>
+                      } />
                     </Route>
 
                     {/* 404 */}

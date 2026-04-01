@@ -95,13 +95,15 @@ const EmployeeTable = ({
           <DropdownItem onClick={() => onEdit?.(row)} icon={<FiEdit2 size={14} />}>
             Edit
           </DropdownItem>
-          <DropdownItem
-            onClick={() => onDelete?.(row.id)}
-            icon={<FiTrash2 size={14} />}
-            className="text-error-600 hover:bg-error-50"
-          >
-            Delete
-          </DropdownItem>
+          {onDelete && (
+            <DropdownItem
+              onClick={() => onDelete?.(row.id)}
+              icon={<FiTrash2 size={14} />}
+              className="text-error-600 hover:bg-error-50"
+            >
+              Delete
+            </DropdownItem>
+          )}
         </Dropdown>
       ),
     },

@@ -2,6 +2,7 @@ import express from 'express';
 import authRoutes from './auth.routes.js';
 import employeeRoutes from './employee.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
+import messageRoutes from './message.routes.js';
 import { protect } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.use('/auth', authRoutes);
 // Protected routes
 router.use('/employees', protect, employeeRoutes);
 router.use('/dashboard', protect, dashboardRoutes);
+router.use('/messages', protect, messageRoutes);
 
 export default router;

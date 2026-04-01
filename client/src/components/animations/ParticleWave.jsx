@@ -28,7 +28,7 @@ const ParticleWave = () => {
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full bg-gradient-to-r from-primary-500/30 to-primary-600/30"
+          className="absolute rounded-full bg-gradient-to-r from-blue-700/30 to-primary-600/30"
           style={{
             width: particle.size,
             height: particle.size,

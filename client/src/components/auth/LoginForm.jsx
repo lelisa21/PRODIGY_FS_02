@@ -43,7 +43,7 @@ const LoginForm = () => {
     const result = await login(data.email, data.password, data.rememberMe);
     if (result.success) {
       showSuccess('Welcome back! Login successful');
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     } else {
       showError(result.error || 'Login failed. Please check your credentials.');
     }

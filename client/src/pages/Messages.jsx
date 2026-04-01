@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { FiSend, FiUser } from 'react-icons/fi';
 import { FadeIn, SlideIn } from '../components/animations';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { useAuthStore } from '../store/authStore';
 import { formatDistanceToNow } from 'date-fns';
-
-const STORAGE_KEY = 'ems_messages';
+import messageService from '../services/message.service';
+import websocketService from '../services/websocket.service';
+import { useToast } from '../context/ToastContext';
 
 const Messages = () => {
   const user = useAuthStore((state) => state.user);
+  const { error: showError, success: showSuccess } = useToast();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const displayName =
     user?.fullName ||
@@ -19,33 +22,50 @@ const Messages = () => {
     user?.email ||
     'User';
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setMessages(JSON.parse(stored));
-      } catch {
-        setMessages([]);
-      }
+  const loadMessages = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await messageService.getMessages();
+      setMessages(response.data || []);
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to load messages');
+    } finally {
+      setLoading(false);
     }
+  }, [showError]);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  useEffect(() => {
+    websocketService.connect();
+    const handler = (msg) => {
+      setMessages((prev) => {
+        if (prev.some((item) => item.id === msg.id)) return prev;
+        return [msg, ...prev];
+      });
+    };
+    websocketService.on('message:new', handler);
+    return () => {
+      websocketService.off('message:new', handler);
+      websocketService.disconnect();
+    };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
-
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    const newMessage = {
-      id: Date.now(),
-      text: trimmed,
-      user: displayName,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [newMessage, ...prev]);
-    setText('');
+    try {
+      await messageService.createMessage(trimmed);
+      setText('');
+      showSuccess('Message sent');
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to send message');
+    }
   };
+
+  const canSend = ['admin', 'manager'].includes(user?.role || 'employee');
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -60,12 +80,13 @@ const Messages = () => {
         <div className="bg-white rounded-xl shadow-soft border border-secondary-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-3">
             <Input
-              placeholder="Write an announcement..."
+              placeholder={canSend ? 'Write an announcement...' : 'Only admins and managers can send messages'}
               value={text}
               onChange={(e) => setText(e.target.value)}
               fullWidth
+              disabled={!canSend}
             />
-            <Button variant="primary" icon={<FiSend />} onClick={handleSend}>
+            <Button variant="primary" icon={<FiSend />} onClick={handleSend} disabled={!canSend}>
               Send
             </Button>
           </div>
@@ -74,18 +95,21 @@ const Messages = () => {
 
       <SlideIn direction="up" delay={0.1}>
         <div className="space-y-3">
-          {messages.length === 0 && (
+          {loading && (
+            <div className="skeleton h-48 rounded-lg" />
+          )}
+          {!loading && messages.length === 0 && (
             <div className="text-center text-secondary-500 py-8">
               No messages yet
             </div>
           )}
-          {messages.map((msg) => (
+          {!loading && messages.map((msg) => (
             <div key={msg.id} className="bg-white rounded-xl shadow-soft border border-secondary-200 p-4">
               <div className="flex items-center gap-2 text-secondary-600 text-sm mb-2">
                 <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
                   <FiUser size={12} />
                 </div>
-                <span className="font-medium">{msg.user}</span>
+                <span className="font-medium">{msg.createdBy?.name || 'User'}</span>
                 <span className="text-xs text-secondary-400">
                   {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                 </span>
