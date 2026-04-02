@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { FiMail, FiLock, FiLogIn, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import { useAuthStore } from '../../store/authStore';
@@ -24,7 +24,6 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
   const { error: showError, success: showSuccess } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
   
   const {
     register,
@@ -78,7 +77,7 @@ const LoginForm = () => {
           
           <Input
             label="Password"
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             placeholder="Enter your password"
             icon={<FiLock />}
             error={errors.password?.message}

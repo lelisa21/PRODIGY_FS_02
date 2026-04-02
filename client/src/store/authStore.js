@@ -13,17 +13,16 @@ export const useAuthStore = create(
       login: async (email, password, rememberMe = false) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.post('/auth/login', { email, password });
-          console.log('Login response:', response.data); // Debug
+          const response = await api.post('/auth/login', { 
+            email, 
+            password, 
+            rememberMe: Boolean(rememberMe) 
+          });
           
           // Backend returns data in response.data.data.user
           const { user, accessToken } = response.data.data;
           
           localStorage.setItem('accessToken', accessToken);
-          if (!rememberMe) {
-            localStorage.removeItem('refreshToken');
-          }
-          
           set({
             user,
             isAuthenticated: true,
@@ -68,7 +67,6 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await api.post('/auth/signup', userData);
-          console.log('Registration response:', response.data); // Debug
           
           // Check if registration was successful
           if (response.data.success) {
@@ -102,7 +100,6 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await api.patch('/auth/profile', data);
-          console.log('Update profile response:', response.data); // Debug
           
           // Fix: Access user from response.data.data
           const updatedUser = response.data.data;

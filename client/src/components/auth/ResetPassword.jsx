@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { FiLock, FiCheckCircle, FiArrowLeft, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiLock, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import { useToast } from '../../context/ToastContext';
@@ -29,8 +29,6 @@ const ResetPassword = () => {
   const { search } = useLocation();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { success: showSuccess, error: showError } = useToast();
   
   const {
@@ -88,7 +86,7 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
               label="New Password"
-              type={showPassword ? 'text' : 'password'}
+              type="password"
               placeholder="Enter new password"
               icon={<FiLock />}
               error={errors.password?.message}
@@ -98,7 +96,7 @@ const ResetPassword = () => {
             
             <Input
               label="Confirm New Password"
-              type={showConfirmPassword ? 'text' : 'password'}
+              type="password"
               placeholder="Confirm your new password"
               icon={<FiLock />}
               error={errors.confirmPassword?.message}

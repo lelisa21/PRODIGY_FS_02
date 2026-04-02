@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import Employee from "../models/Employee.model.js";
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
 import redisClient from "../config/redis.js";
 import logger from "../utils/logger.js";
 import AppError from "../utils/appError.js";

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,14 +39,11 @@ const RegisterForm = () => {
   const navigate = useNavigate();
   const { register: registerUser, isLoading } = useAuthStore();
   const { error: showError, success: showSuccess } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -76,8 +73,6 @@ const onSubmit = async (data) => {
   };
 
   const result = await registerUser(payload);
-  console.log('Registration result:', result); 
-  
   if (result.success) {
     showSuccess(result.message || 'Account created successfully! Please login.');
     navigate('/login');
@@ -147,7 +142,7 @@ const onSubmit = async (data) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Password"
-              type={showPassword ? 'text' : 'password'}
+              type="password"
               placeholder="Create a strong password"
               icon={<FiLock />}
               error={errors.password?.message}
@@ -157,7 +152,7 @@ const onSubmit = async (data) => {
             
             <Input
               label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
+              type="password"
               placeholder="Confirm your password"
               icon={<FiLock />}
               error={errors.confirmPassword?.message}

@@ -137,7 +137,6 @@ const employeeService = {
   getEmployees: async (params) => {
     try {
       const response = await api.get('/employees', { params });
-      console.log('Raw employees response:', response.data); // Debug
       
       // Handle different response structures
       let employeesData = [];
@@ -155,7 +154,6 @@ const employeeService = {
       
       // Transform each employee
       const transformedEmployees = employeesData.map(transformEmployee);
-      console.log('Transformed employees:', transformedEmployees); // Debug
       
       return {
         data: transformedEmployees,
@@ -177,11 +175,9 @@ const employeeService = {
   getEmployeeById: async (id) => {
     try {
       const response = await api.get(`/employees/${id}`);
-      console.log('Raw employee response:', response.data); // Debug
       
       let employeeData = response.data?.data || response.data;
       const transformedEmployee = transformEmployee(employeeData);
-      console.log('Transformed employee:', transformedEmployee); // Debug
       
       return {
         success: true,
@@ -204,7 +200,6 @@ const employeeService = {
         backendData.user = data.userId;
       }
       
-      console.log('Sending to backend:', backendData); // Debug
       
       const response = await api.post('/employees', backendData);
       
@@ -229,7 +224,6 @@ const employeeService = {
       // Transform frontend data to backend format
       const backendData = transformToBackend(data);
       
-      console.log('Updating with:', backendData); // Debug
       
       const response = await api.patch(`/employees/${id}`, backendData);
       

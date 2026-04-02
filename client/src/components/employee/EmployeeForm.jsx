@@ -40,8 +40,6 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
-    watch,
   } = useForm({
     resolver: zodResolver(employeeSchema),
     defaultValues: {

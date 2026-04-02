@@ -14,14 +14,6 @@ class WebSocketService {
       transports: ['websocket'],
     });
 
-    this.socket.on('connect', () => {
-      console.log('WebSocket connected');
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
-    });
-
     this.socket.on('error', (error) => {
       console.error('WebSocket error:', error);
     });

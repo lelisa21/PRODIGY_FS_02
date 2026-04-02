@@ -1,8 +1,12 @@
 import api from './api';
 
 class AuthService {
-  async login(email, password) {
-    const response = await api.post('/auth/login', { email, password });
+  async login(email, password, rememberMe = false) {
+    const response = await api.post('/auth/login', { 
+      email, 
+      password, 
+      rememberMe: Boolean(rememberMe) 
+    });
     return response.data;
   }
 

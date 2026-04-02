@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/authContext';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { EmployeeProvider } from './context/EmployeeContext';
-import { useAuthContext } from './context/authContext';
+import { useAuthContext } from './context/AuthContext';
 
 import Layout from './components/layout/Layout';
 import Landing from './pages/Landing'; 

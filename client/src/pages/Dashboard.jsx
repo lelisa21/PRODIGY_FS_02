@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import  { useEffect } from 'react';
 import { FiUsers, FiUserCheck, FiTrendingUp, FiDollarSign } from 'react-icons/fi';
 import StatsCard from '../components/dashboard/StatsCard';
 import PerformanceChart from '../components/dashboard/PerformanceChart';

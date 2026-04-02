@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
 import AppError from "../utils/appError.js";
 import logger from "../utils/logger.js";
 import emailService from "./email.service.js";
@@ -45,7 +45,7 @@ class AuthService {
     };
   }
 
-  async login(email, password, ipAddress) {
+  async login(email, password, ipAddress, rememberMe = true) {
     const user = await User.findOne({ email }).select(
       "+password +loginAttempts +lockUntil +refreshTokens",
     );
@@ -72,7 +72,7 @@ class AuthService {
     user.lastLogin = new Date();
 
     // generate tokens
-    const { accessToken, refreshToken } = this.generateTokens(user);
+    const { accessToken, refreshToken, rememberMe: tokenRememberMe } = this.generateTokens(user, rememberMe);
     // manage refresh tokens
     if (user.refreshTokens) user.refreshTokens = [];
     user.refreshTokens.push(refreshToken);
@@ -96,13 +96,14 @@ class AuthService {
 
     return {
       user: user.toJSON(),
-      tokens: { accessToken, refreshToken },
+      tokens: { accessToken, refreshToken, rememberMe: tokenRememberMe },
     };
   }
 
   async refreshToken(refreshToken) {
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+      const rememberMe = Boolean(decoded?.rm);
 
       const user = await User.findById(decoded.id).select("+refreshTokens");
       if (!user) {
@@ -112,7 +113,7 @@ class AuthService {
         throw new AppError("Invalid refresh token", 401);
       }
       //    generate new tokens
-      const tokens = this.generateTokens(user);
+      const tokens = this.generateTokens(user, rememberMe);
       // remove old refresh token and add new one
       user.refreshTokens = user.refreshTokens.filter(
         (token) => token !== refreshToken,
@@ -124,7 +125,7 @@ class AuthService {
       }
       await user.save();
 
-      return tokens;
+      return { ...tokens, rememberMe };
     } catch (error) {
       throw new AppError("Invalid refresh token", 401);
     }
@@ -224,7 +225,7 @@ class AuthService {
     logger.info(`User ${user.email} reset their password`);
   }
 
-  generateTokens(user) {
+  generateTokens(user, rememberMe = true) {
     const accessToken = jwt.sign(
       {
         id: user._id,
@@ -237,13 +238,13 @@ class AuthService {
       },
     );
     const refreshToken = jwt.sign(
-      { id: user._id },
+      { id: user._id, rm: rememberMe ? 1 : 0 },
       process.env.JWT_REFRESH_SECRET,
       {
         expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "15d",
       },
     );
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, rememberMe };
   }
   async generateEmployeeId() {
     const year = new Date().getFullYear().toString().slice(-2);

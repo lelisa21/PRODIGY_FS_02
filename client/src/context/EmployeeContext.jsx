@@ -128,16 +128,12 @@ export const EmployeeProvider = ({ children }) => {
 
   const loadEmployees = useCallback(async () => {
     if (!isAuthenticated) {
-      console.log('Not authenticated, skipping employee load');
       return;
     }
     
     if (isLoadingRef.current) {
-      console.log('Already loading, skipping...');
       return;
     }
-    
-    console.log(' Loading employees...');
     isLoadingRef.current = true;
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
@@ -151,8 +147,6 @@ export const EmployeeProvider = ({ children }) => {
         position: state.filters.position,
       };
       
-      console.log('Request params:', params);
-      
       const response = await employeeService.getEmployees(params);
       
       dispatch({ type: ACTIONS.SET_EMPLOYEES, payload: response });
@@ -161,7 +155,6 @@ export const EmployeeProvider = ({ children }) => {
       console.error('Load employees error:', error.response?.status);
       
       if (error.response?.status === 401) {
-        console.log('Unauthorized, clearing auth');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         return { success: false, error: 'Unauthorized' };
@@ -189,7 +182,6 @@ export const EmployeeProvider = ({ children }) => {
         loadEmployees();
       }
     } else {
-      console.log('Not authenticated, clearing employees');
       dispatch({ 
         type: ACTIONS.SET_EMPLOYEES, 
         payload: { data: [], total: 0 } 
@@ -341,15 +333,6 @@ export const EmployeeProvider = ({ children }) => {
     });
     dispatch({ type: ACTIONS.SET_PAGINATION, payload: { page: 1 } });
   }, []);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      loadEmployees();
-    } else {
-      loadEmployees();
-    }
-  }, [state.pagination.page, state.pagination.limit, state.filters]); 
 
   const value = {
     employees: state.employees,

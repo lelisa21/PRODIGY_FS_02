@@ -1,5 +1,5 @@
 import authService from '../services/auth.service.js';
-import User from '../models/user.model.js';
+import User from '../models/User.model.js';
 import { 
   loginValidator, 
   signupValidator, 
@@ -37,12 +37,12 @@ class AuthController {
       throw new AppError(error.details[0].message, 400);
     }
 
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     const ipAddress = req.ip || req.connection.remoteAddress;
 
-    const result = await authService.login(email, password, ipAddress);
+    const result = await authService.login(email, password, ipAddress, rememberMe);
 
-    this.setRefreshTokenCookie(res, result.tokens.refreshToken);
+    this.setRefreshTokenCookie(res, result.tokens.refreshToken, rememberMe);
 
     res.status(200).json({
       success: true,
@@ -63,7 +63,7 @@ class AuthController {
 
     const tokens = await authService.refreshToken(refreshToken);
 
-    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    this.setRefreshTokenCookie(res, tokens.refreshToken, tokens.rememberMe);
 
     res.status(200).json({
       success: true,
@@ -173,12 +173,13 @@ class AuthController {
     });
   });
 
-  setRefreshTokenCookie(res, token) {
+  setRefreshTokenCookie(res, token, rememberMe = true) {
+    const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
     res.cookie('refreshToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 
+      ...(maxAge ? { maxAge } : {})
     });
   }
 }
