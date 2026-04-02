@@ -32,7 +32,7 @@ const Toast = ({ id, type, message, duration = 5000, onClose }) => {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 50, scale: 0.9 }}
       className={clsx(
-        'flex items-center p-4 mb-3 rounded-lg border shadow-lg min-w-[300px] max-w-md',
+        'flex items-center p-4 mb-3 rounded-lg border shadow-lg min-w-70 max-w-md',
         bgColors[type]
       )}
     >

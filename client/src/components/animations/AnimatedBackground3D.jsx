@@ -31,7 +31,7 @@ const AnimatedBackground3D = () => {
     <div ref={containerRef} className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Animated gradient orbs */}
       <motion.div
-        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-primary-500/20 to-primary-600/20 blur-3xl"
+        className="absolute top-1/4 left-1/4 w-125 h-125 rounded-full bg-linear-to-r from-primary-500/20 to-primary-600/20 blur-3xl"
         animate={{
           x: [0, 100, -50, 0],
           y: [0, -50, 100, 0],
@@ -44,7 +44,7 @@ const AnimatedBackground3D = () => {
       />
       
       <motion.div
-        className="absolute bottom-1/4 right-1/4 w-150px h-150px rounded-full bg-gradient-to-r from-secondary-500/10 to-primary-400/10 blur-3xl"
+        className="absolute bottom-1/4 right-1/4 w-150px h-150px rounded-full bg-linear-to-r from-secondary-500/10 to-primary-400/10 blur-3xl"
         animate={{
           x: [0, -100, 50, 0],
           y: [0, 50, -100, 0],

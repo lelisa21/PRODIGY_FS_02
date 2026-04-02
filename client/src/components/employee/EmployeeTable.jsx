@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiEye, FiMoreVertical } from 'react-icons/fi';
 import Table from '../common/Table';
 import Badge from '../common/Badge';
@@ -35,7 +33,7 @@ const EmployeeTable = ({
       width: '250px',
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center">
             <span className="text-white text-sm font-medium">
               {value?.charAt(0) || 'E'}
             </span>

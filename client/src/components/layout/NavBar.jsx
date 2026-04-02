@@ -112,7 +112,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 </button>
               }
             >
-              <div className="p-4 min-w-[280px]">
+              <div className="p-4 min-w-70">
                 <h3 className="text-sm font-semibold text-secondary-900 mb-2">Notifications</h3>
                 {notifications.length === 0 ? (
                   <p className="text-sm text-secondary-500">No new notifications</p>

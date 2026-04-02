@@ -61,7 +61,7 @@ const ActivityFeed = ({ activities, loading = false }) => {
           transition={{ delay: index * 0.05 }}
           className={`flex items-start gap-3 p-3 rounded-lg border ${getActivityColor(activity.type)}`}
         >
-          <div className="flex-shrink-0 mt-1">
+          <div className="shrink-0 mt-1">
             {getActivityIcon(activity.type)}
           </div>
           <div className="flex-1 min-w-0">
@@ -73,8 +73,8 @@ const ActivityFeed = ({ activities, loading = false }) => {
             </p>
           </div>
           {activity.user && (
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+            <div className="shrink-0">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center">
                 <span className="text-white text-xs font-medium">
                   {activity.user.charAt(0)}
                 </span>

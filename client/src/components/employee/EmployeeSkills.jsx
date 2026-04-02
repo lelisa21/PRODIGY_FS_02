@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiX, FiStar } from 'react-icons/fi';
+import { FiPlus, FiX} from 'react-icons/fi';
 import Button from '../common/Button';
 import Input from '../common/Input';
 

@@ -23,7 +23,7 @@ const NotFound = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-linear-to-br from-gray-50 via-white to-gray-100">
       <ParticleBackground particleCount={50} opacity={0.15} color="#3b82f6" />
 
       <motion.div
@@ -185,7 +185,7 @@ const NotFound = () => {
             initial={{ width: 0 }}
             animate={{ width: "100%" }}
             transition={{ delay: 0.8, duration: 0.6 }}
-            className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent max-w-md mx-auto mb-6"
+            className="h-px bg-linear-to-r from-transparent via-gray-300 to-transparent max-w-md mx-auto mb-6"
           />
 
           {/* Back to Homepage Button */}
@@ -201,7 +201,7 @@ const NotFound = () => {
                 variant="primary"
                 size="md"
                 icon={<FiHome className="w-5 h-5" />}
-                className="shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-4 py-4 rounded"
+                className="shadow-xl hover:shadow-2xl transition-all duration-300 bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-4 py-4 rounded"
               >
                 BACK TO HOMEPAGE
               </Button>

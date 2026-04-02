@@ -78,7 +78,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* User Info */}
           <div className="p-4 border-b border-secondary-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white font-medium">
                   {displayName.charAt(0) || 'U'}
                 </span>
@@ -113,10 +113,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   }
                   onClick={() => setIsOpen(false)}
                 >
-                  <item.icon size={18} className="flex-shrink-0" />
+                  <item.icon size={18} className="shrink-0" />
                   <span className="truncate">{item.label}</span>
                   {item.label === 'Performance' && (
-                    <span className="ml-auto text-xs bg-success-100 text-success-700 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                    <span className="ml-auto text-xs bg-success-100 text-success-700 px-1.5 py-0.5 rounded-full shrink-0">
                       New
                     </span>
                   )}
@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 }
                 onClick={() => setIsOpen(false)}
               >
-                <item.icon size={18} className="flex-shrink-0" />
+                <item.icon size={18} className="shrink-0" />
                 <span className="truncate">{item.label}</span>
               </NavLink>
             ))}
@@ -151,7 +151,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-error-600 hover:bg-error-50 transition-all duration-200"
             >
-              <FiLogOut size={18} className="flex-shrink-0" />
+              <FiLogOut size={18} className="shrink-0" />
               <span className="truncate">Logout</span>
             </button>
           </div>

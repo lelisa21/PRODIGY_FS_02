@@ -1,5 +1,4 @@
 import  { useState } from 'react';
-import { motion } from 'framer-motion';
 import { FiChevronDown, FiChevronRight, FiUser } from 'react-icons/fi';
 import { clsx } from 'clsx';
 
@@ -30,7 +29,7 @@ const TreeNode = ({ node, level = 0, onSelect }) => {
         )}
         {!hasChildren && <div className="w-5" />}
         
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center">
           <FiUser size={14} className="text-white" />
         </div>
         
@@ -72,7 +71,7 @@ const EmployeeHierarchy = ({ hierarchy, onSelectEmployee, loading = false }) => 
   return (
     <div className="bg-white rounded-xl shadow-soft border border-secondary-200 p-4">
       <h3 className="text-lg font-semibold text-secondary-900 mb-4">Organization Hierarchy</h3>
-      <div className="overflow-y-auto max-h-[500px]">
+      <div className="overflow-y-auto max-h-125">
         <TreeNode node={hierarchy} onSelect={onSelectEmployee} />
       </div>
     </div>

@@ -374,7 +374,7 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 bg-gradient-to-r from-primary-500 to-primary-600">
+      <section className="py-24 px-4 bg-linear-to-r from-primary-500 to-primary-600">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

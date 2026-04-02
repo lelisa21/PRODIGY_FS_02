@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { FiMail, FiPhone, FiBriefcase, FiMapPin } from 'react-icons/fi';
 import Badge from '../common/Badge';
-import Tooltip from '../common/Tooltip';
 
 const EmployeeCard = ({ employee, onClick }) => {
   const getStatusColor = (status) => {

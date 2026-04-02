@@ -41,7 +41,7 @@ const Dropdown = ({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.1 }}
             className={clsx(
-              'absolute z-50 mt-2 min-w-[160px] bg-white rounded-lg shadow-lg border border-secondary-200 overflow-hidden',
+              'absolute z-50 mt-2 min-w-40 bg-white rounded-lg shadow-lg border border-secondary-200 overflow-hidden',
               alignments[align]
             )}
           >

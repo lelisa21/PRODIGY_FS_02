@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import { 
@@ -6,7 +6,6 @@ import {
   FiFileText, FiImage, FiArchive, FiX 
 } from 'react-icons/fi';
 import { formatDate } from '../../utils/formatters';
-import Button from '../common/Button';
 
 const EmployeeDocuments = ({ documents = [], onUpload, onDelete, readOnly = false }) => {
   const [uploading, setUploading] = useState(false);

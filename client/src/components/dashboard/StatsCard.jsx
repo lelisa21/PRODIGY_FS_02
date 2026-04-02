@@ -4,10 +4,10 @@ import AnimatedNumber from '../animations/AnimatedNumber';
 
 const StatsCard = ({ title, value, change, icon, color = 'primary', loading = false }) => {
   const colors = {
-    primary: 'bg-gradient-to-br from-primary-500 to-primary-600',
-    success: 'bg-gradient-to-br from-success-500 to-success-600',
-    warning: 'bg-gradient-to-br from-warning-500 to-warning-600',
-    info: 'bg-gradient-to-br from-info-500 to-info-600',
+    primary: 'bg-linear-to-br from-primary-500 to-primary-600',
+    success: 'bg-linear-to-br from-success-500 to-success-600',
+    warning: 'bg-linear-to-br from-warning-500 to-warning-600',
+    info: 'bg-linear-to-br from-info-500 to-info-600',
   };
   
   const isPositive = change && change.startsWith('+');
