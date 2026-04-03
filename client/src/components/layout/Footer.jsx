@@ -12,16 +12,16 @@ const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-secondary-500">
-            © {currentYear} Enterprise EMS. All rights reserved.
+            © {currentYear}  GreatTeam Enterprise EMS. All rights reserved.
           </div>
           <div className="flex gap-6">
-            <a href="#" className="text-sm text-secondary-500 hover:text-primary-600 transition-colors">
+            <a href="#" className="text-sm text-secondary-500 hover:text-teal-500 transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-sm text-secondary-500 hover:text-primary-600 transition-colors">
+            <a href="#" className="text-sm text-secondary-500 hover:text-teal-500 transition-colors">
               Terms of Service
             </a>
-            <a href="#" className="text-sm text-secondary-500 hover:text-primary-600 transition-colors">
+            <a href="#" className="text-sm text-secondary-500 hover:text-teal-500 transition-colors">
               Support
             </a>
           </div>

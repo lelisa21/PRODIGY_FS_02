@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './Navbar';
+import Navbar from './NavBar';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
-import AnimatedBackground3D from '../animations/AnimatedBackground3D';
 import FloatingElements from '../animations/FloatingElements';
 
 const Layout = () => {
@@ -59,7 +58,6 @@ const Layout = () => {
   return (
     <div className="min-h-screen relative">
       {/* 3D Animated Background */}
-      <AnimatedBackground3D />
       <FloatingElements />
       
       <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />

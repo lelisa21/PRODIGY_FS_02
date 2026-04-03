@@ -7,8 +7,6 @@ import {
   FiTrendingUp,
   FiShield,
   FiBarChart2,
-  FiAward,
-  FiCheck,
   FiStar,
   FiPlay,
   FiPause,

@@ -18,7 +18,7 @@ class EmailService {
       : '';
     const html = `
       <h1>Welcome ${name}!</h1>
-      <p>Thank you for joining our Employee Management System.</p>
+      <p>Thank you for joining  GreatTeam!. We pleased to see you here</p>
       <p>You can now login to access your dashboard and manage your profile.</p>
       ${passwordBlock}
     `;

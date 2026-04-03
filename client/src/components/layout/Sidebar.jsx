@@ -59,7 +59,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setIsOpen(false)}
+            onClick={() => setIsOpen(true)}
           />
         )}
       </AnimatePresence>
@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         animate={isOpen ? 'open' : 'closed'}
         variants={sidebarVariants}
         className={clsx(
-          'fixed top-0 left-0 h-full w-64 md:w-72 bg-white border-r border-secondary-200 z-50',
+          'fixed top-0 left-0 h-full w-44 md:w-52 bg-white border-r border-secondary-200 z-50',
           'lg:translate-x-0 lg:static lg:z-0'
         )}
       >
@@ -111,7 +111,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
                     )
                   }
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setIsOpen(true)}
                 >
                   <item.icon size={18} className="shrink-0" />
                   <span className="truncate">{item.label}</span>

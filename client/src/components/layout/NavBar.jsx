@@ -47,7 +47,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-secondary-200">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-[#00535e] backdrop-blur-md border-b border-secondary-200 text-white ">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section */}
@@ -59,12 +59,12 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
             
-            <Link to="/app/dashboard" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">EMS</span>
+                <span className="text-white font-bold text-sm"> GT</span>
               </div>
-              <span className="hidden sm:block text-xl font-bold bg-linear-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-                Enterprise EMS
+              <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-700 to-primary-400 bg-clip-text text-transparent">
+               GreatTeam
               </span>
             </Link>
 
@@ -77,10 +77,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                   key={link.path}
                   to={link.path}
                   className={clsx(
-                    'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'px-5 py-2 rounded-lg text-sm font-medium transition-colors',
                     location.pathname === link.path
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-100'
+                      ? 'text-primary-600 border-2 border-white '
+                      : 'hover:border-b-2 hover:border-white transition-all duration-500'
                   )}
                 >
                   {link.label}
@@ -90,12 +90,12 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-white">
             {/* Search Button */}
             <Tooltip content="Search">
               <button
                 onClick={() => setShowSearch(true)}
-                className="p-2 rounded-lg text-secondary-600 hover:bg-secondary-100 transition-colors"
+                className="p-2 rounded-lg  hover:hover:bg-[#019af2fa] transition-colors"
               >
                 <FiSearch size={20} />
               </button>
@@ -104,7 +104,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             {/* Notifications */}
             <Dropdown
               trigger={
-                <button className="relative p-2 rounded-lg text-secondary-600 hover:bg-secondary-100 transition-colors">
+                <button className="relative p-2 rounded-lg  hover:bg-[#1c823cfa] transition-colors">
                   <FiBell size={20} />
                   {notifications.length > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 bg-error-500 rounded-full animate-pulse" />
@@ -112,10 +112,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 </button>
               }
             >
-              <div className="p-4 min-w-70">
-                <h3 className="text-sm font-semibold text-secondary-900 mb-2">Notifications</h3>
+              <div className="p-4 min-w-70 text-black">
+                <h3 className="text-sm font-semibold  mb-2">Notifications</h3>
                 {notifications.length === 0 ? (
-                  <p className="text-sm text-secondary-500">No new notifications</p>
+                  <p className="text-sm ">No new notifications</p>
                 ) : (
                   notifications.map((notif, i) => (
                     <DropdownItem key={i} onClick={() => {}}>
@@ -130,16 +130,16 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             <Dropdown
               align="right"
               trigger={
-                <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary-100 transition-colors">
+                <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#00535e4a] transition-colors">
                   <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+                    <span className=" text-sm font-medium">
                       {displayName ? getInitials(displayName) : 'U'}
                     </span>
                   </div>
-                  <span className="hidden md:block text-sm font-medium text-secondary-700">
+                  <span className="hidden md:block text-sm font-medium">
                     {displayName}
                   </span>
-                  <FiChevronDown size={16} className="text-secondary-500" />
+                  <FiChevronDown size={16}/>
                 </button>
               }
             >
@@ -177,7 +177,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50  backdrop-blur-sm"
             onClick={() => setShowSearch(false)}
           >
             <motion.div
@@ -187,7 +187,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               className="max-w-2xl mx-auto mt-20 p-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+              <div className=" rounded-xl shadow-xl overflow-hidden">
                 <div className="p-4 border-b border-secondary-200">
                   <input
                     type="text"

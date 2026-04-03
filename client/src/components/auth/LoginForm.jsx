@@ -67,7 +67,7 @@ const LoginForm = () => {
               <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
                 <FiCompass className="text-white text-2xl" />
               </div>
-              <h2 className="text-3xl font-bold text-white tracking-tighter">TeamFlow</h2>
+              <h2 className="text-3xl font-bold text-white tracking-tighter"> GreatTeam</h2>
             </div>
             
             <h1 className="text-3xl font-semibold text-white leading-none tracking-tighter mb-6">
