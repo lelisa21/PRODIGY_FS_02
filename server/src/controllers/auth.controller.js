@@ -1,4 +1,5 @@
 import authService from '../services/auth.service.js';
+import User from '../models/User.model.js';
 import logger from '../utils/logger.js';
 import { 
   loginValidator, 
@@ -9,6 +10,31 @@ import {
 } from '../validators/auth.validator.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
+
+// for avatar
+import fs  from 'fs';
+import multer from 'multer'
+import path from 'path';
+
+  // single method for avatar
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads/avatars';
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `avatar-${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+export const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 class AuthController {
    signup = catchAsync(async (req, res) => {
@@ -188,17 +214,28 @@ class AuthController {
   }
 
 
-  // single method for avatar
-uploadAvatar = catchAsync(async (req, res) => {
-  const file = req.file;
-  const avatarUrl = `/uploads/avatars/${file.filename}`;
-  
-  await User.findByIdAndUpdate(req.user.id, {
-    'profile.avatar': file.filename
+
+
+  uploadAvatar = catchAsync(async (req, res) => {
+    if (!req.file) {
+      throw new AppError('No file uploaded', 400);
+    }
+    
+    await User.findByIdAndUpdate(req.user.id, {
+      'profile.avatar': req.file.filename
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      data: {
+        avatar: req.file.filename,
+        url: `/uploads/avatars/${req.file.filename}`
+      }
+    });
   });
-  
-  res.json({ success: true, data: { avatar: file.filename, url: avatarUrl } });
-});
+
+
 }
 
 export default new AuthController();

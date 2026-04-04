@@ -1,32 +1,31 @@
-// Profile.jsx
 
-import { useState, useEffect } from 'react';
-import { FiSave, FiX, FiCamera } from 'react-icons/fi';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-import { useAuthStore } from '../store/authStore';
-import { useToast } from '../context/ToastContext';
-import { FadeIn, SlideIn } from '../components/animations';
-
+import { useState, useEffect, useRef } from "react";
+import { FiSave, FiX, FiCamera } from "react-icons/fi";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
+import { useAuthStore } from "../store/authStore";
+import { useToast } from "../context/ToastContext";
+import { FadeIn, SlideIn } from "../components/animations";
+import api from "../services/api";
 const Profile = () => {
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const isLoading = useAuthStore((state) => state.isLoading);
   const checkAuth = useAuthStore((state) => state.checkAuth);
-  
+
   const { success: showSuccess, error: showError } = useToast();
 
-  const [uploadingAvatar , setUploadingAvatar] = useState("");
-
+  const [uploadingAvatar, setUploadingAvatar] = useState("");
+  const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    department: '',
-    position: '',
-    location: '',
-    bio: '',
+    name: "",
+    email: "",
+    phone: "",
+    department: "",
+    position: "",
+    location: "",
+    bio: "",
   });
 
   useEffect(() => {
@@ -35,17 +34,21 @@ const Profile = () => {
       const employmentDetails = employeeData.employmentDetails || {};
       const personalInfo = employeeData.personalInfo || {};
       const profile = user.profile || {};
-      
-      const location = employmentDetails.workLocation || profile.location || '';
-      
-      const bio = personalInfo.bio || profile.bio || '';
-      
+
+      const location = employmentDetails.workLocation || profile.location || "";
+
+      const bio = personalInfo.bio || profile.bio || "";
+
       setFormData({
-        name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),
-        email: user.email || '',
-        phone: profile.phone || '',
-        department: employmentDetails.department || user.employeeDetails?.department || '',
-        position: employmentDetails.position || user.employeeDetails?.position || '',
+        name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
+        email: user.email || "",
+        phone: profile.phone || "",
+        department:
+          employmentDetails.department ||
+          user.employeeDetails?.department ||
+          "",
+        position:
+          employmentDetails.position || user.employeeDetails?.position || "",
         location: location,
         bio: bio,
       });
@@ -54,49 +57,50 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const nameParts = formData.name.trim().split(' ').filter(Boolean);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
-    
+
+    const nameParts = formData.name.trim().split(" ").filter(Boolean);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
     const payload = {};
-    
+
     // Add profile data
     const profile = {};
     if (firstName) profile.firstName = firstName;
     if (lastName) profile.lastName = lastName;
     if (formData.phone) profile.phone = formData.phone;
-    if(formData.bio) profile.bio = formData.bio;
+    if (formData.bio) profile.bio = formData.bio;
     if (Object.keys(profile).length > 0) payload.profile = profile;
-    
+
     // Add employee details
     const employeeDetails = {};
     if (formData.department) employeeDetails.department = formData.department;
     if (formData.position) employeeDetails.position = formData.position;
     if (formData.location) employeeDetails.workLocation = formData.location;
-    if (Object.keys(employeeDetails).length > 0) payload.employeeDetails = employeeDetails;
-    
+    if (Object.keys(employeeDetails).length > 0)
+      payload.employeeDetails = employeeDetails;
+
     // Add personal info (bio)
     if (formData.bio) {
       payload.personalInfo = { bio: formData.bio };
     }
-    
+
     // Add email if changed
     if (formData.email !== user?.email && formData.email) {
       payload.email = formData.email;
     }
-    
-    console.log('Sending payload:', payload);
-    
+
+    console.log("Sending payload:", payload);
+
     if (Object.keys(payload).length === 0) {
-      showError('No changes to update');
+      showError("No changes to update");
       return;
     }
-    
+
     const result = await updateProfile(payload);
-    
+
     if (result.success) {
-      showSuccess('Profile updated successfully');
+      showSuccess("Profile updated successfully");
       setIsEditing(false);
       // Refresh user data from server
       await checkAuth();
@@ -107,35 +111,37 @@ const Profile = () => {
 
   const getInitials = (name) => {
     return name
-      .split(' ')
+      .split(" ")
       .filter(Boolean)
       .map((word) => word[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
-// for avator handling
+  // for avator handling
   const handleAvatarUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  setUploadingAvatar(true);
-  const formData = new FormData();
-  formData.append('avatar', file);
-  
-  try {
-    const response = await api.post('/auth/upload-avatar', formData);
-    if (response.data.success) {
-      await checkAuth(); 
-      showSuccess('Avatar updated');
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const response = await api.post("/auth/upload-avatar",formData , {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (response.data.success) {
+        await checkAuth();
+        showSuccess("Avatar updated");
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || "Upload failed");
+    } finally {
+      setUploadingAvatar(false);
     }
-  } catch (error) {
-    showError('Upload failed');
-  } finally {
-    setUploadingAvatar(false);
-  }
-};
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
@@ -151,9 +157,7 @@ const Profile = () => {
           </div>
 
           {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </Button>
+            <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
           ) : (
             <div className="flex gap-3">
               <Button
@@ -163,18 +167,19 @@ const Profile = () => {
                   // Reset form data from current user
                   if (user) {
                     const employeeData = user.employeeData || {};
-                    const employmentDetails = employeeData.employmentDetails || {};
+                    const employmentDetails =
+                      employeeData.employmentDetails || {};
                     const personalInfo = employeeData.personalInfo || {};
                     const profile = user.profile || {};
-                    
+
                     setFormData({
-                      name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),
-                      email: user.email || '',
-                      phone: profile.phone || '',
-                      department: employmentDetails.department || '',
-                      position: employmentDetails.position || '',
-                      location: employmentDetails.workLocation || '',
-                      bio: personalInfo.bio || '',
+                      name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
+                      email: user.email || "",
+                      phone: profile.phone || "",
+                      department: employmentDetails.department || "",
+                      position: employmentDetails.position || "",
+                      location: employmentDetails.workLocation || "",
+                      bio: personalInfo.bio || "",
                     });
                   }
                 }}
@@ -201,18 +206,41 @@ const Profile = () => {
             <div className="absolute -bottom-12 left-6">
               <div className="relative">
                 <div className="w-24 h-24 rounded-xl bg-white p-1 shadow-md">
-                  <div className="w-full h-full rounded-lg bg-linear-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">
-                      {getInitials(formData.name || 'U')}
-                    </span>
-                  </div>
+                  {user?.profile?.avatar &&
+                  user.profile.avatar !== "avatar.png" ? (
+                    <img
+                      src={`http://localhost:5500/uploads/avatars/${user.profile.avatar}`}
+                      className="w-full h-full rounded-lg object-cover"
+                      alt="avatar"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">
+                        {getInitials(formData.name || "U")}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {isEditing && (
-                  <button className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md hover:bg-secondary-50">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md hover:bg-secondary-50"
+                >
+                  {uploadingAvatar ? (
+                    <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  ) : (
                     <FiCamera size={14} className="text-primary-600" />
-                  </button>
-                )}
+                  )}
+                </button>
               </div>
             </div>
           </div>

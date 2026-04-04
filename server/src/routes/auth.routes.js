@@ -1,5 +1,5 @@
 import express from "express";
-import authController from "../controllers/auth.controller.js";
+import authController, { upload } from "../controllers/auth.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import multer from "multer";
 const router = express.Router();
@@ -18,7 +18,6 @@ router.get("/profile", protect, authController.getProfile);
 router.patch("/profile", protect, authController.updateProfile);
 
 
-// avatar
-const upload = multer({ dest: 'uploads/avatars/' });
+
 router.post('/upload-avatar', protect, upload.single('avatar'), authController.uploadAvatar);
 export default router;
