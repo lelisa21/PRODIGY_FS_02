@@ -8,7 +8,7 @@ export const createEmployeeValidator = Joi.object({
   userProfile: Joi.object({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    phone: Joi.string().optional(),
+    phone: Joi.string().allow('' , null).optional(),
     avatar: Joi.string().optional()
   }).optional(),
   employmentDetails: Joi.object({

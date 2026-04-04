@@ -5,7 +5,6 @@ import upload from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
-// All routes are protected
 router.use(protect);
 
 // Public routes (accessible by all authenticated users)
@@ -25,10 +24,10 @@ router.post('/bulk/import', restrictTo('admin'), employeeController.bulkImportEm
 
 // Skills
 router.post('/:id/skills', restrictTo('admin', 'manager'), employeeController.addEmployeeSkill);
-router.patch('/:id/skills', restrictTo('admin', 'manager'), employeeController.updateEmployeeSkills); // NEW
+router.patch('/:id/skills', restrictTo('admin', 'manager'), employeeController.updateEmployeeSkills); 
 
 // Documents
 router.post('/:id/documents', restrictTo('admin', 'manager', 'employee'), upload.single('document'), employeeController.uploadDocument);
-router.delete('/:id/documents/:documentId', restrictTo('admin', 'manager', 'employee'), employeeController.deleteDocument); // NEW
+router.delete('/:id/documents/:documentId', restrictTo('admin', 'manager', 'employee'), employeeController.deleteDocument); 
 
 export default router;

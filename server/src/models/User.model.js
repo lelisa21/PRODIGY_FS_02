@@ -39,6 +39,17 @@ const userSchema = new mongoose.Schema({
     avatar: { 
       type: String,
       default: 'avatar.png'
+    },
+    bio: {  
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: ''
+    },
+    location: { 
+      type: String,
+      trim: true,
+      default: ''
     }
   },
   employeeDetails: {

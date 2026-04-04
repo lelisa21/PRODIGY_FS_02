@@ -120,7 +120,7 @@ const LoginForm = () => {
             
             {/* Form header */}
             <div className="text-center mb-10">
-              <h1 className="text-3xl font-semibold text-gray-900">Sign in to TeamFlow</h1>
+              <h1 className="text-3xl font-semibold text-gray-900">Sign in to GreatTeam</h1>
               <p className="text-gray-500 mt-3">Access your workspace and continue where you left off</p>
             </div>
 

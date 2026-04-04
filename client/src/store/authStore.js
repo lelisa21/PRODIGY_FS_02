@@ -6,7 +6,7 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      isAuthenticated: false, // Change this to false initially
+      isAuthenticated: false,
       isLoading: false,
       error: null,
 
@@ -19,7 +19,6 @@ export const useAuthStore = create(
             rememberMe: Boolean(rememberMe) 
           });
           
-          // Backend returns data in response.data.data.user
           const { user, accessToken } = response.data.data;
           
           localStorage.setItem('accessToken', accessToken);
@@ -68,7 +67,6 @@ export const useAuthStore = create(
         try {
           const response = await api.post('/auth/signup', userData);
           
-          // Check if registration was successful
           if (response.data.success) {
             set({ 
               isLoading: false,
@@ -96,35 +94,68 @@ export const useAuthStore = create(
         }
       },
 
-      updateProfile: async (data) => {
-        set({ isLoading: true, error: null });
-        try {
-          const response = await api.patch('/auth/profile', data);
-          
-          // Fix: Access user from response.data.data
-          const updatedUser = response.data.data;
-          
-          set({
-            user: updatedUser,
-            isLoading: false,
-            error: null,
-          });
-          return { success: true, data: updatedUser };
-        } catch (error) {
-          console.error('Update profile error:', error.response?.data);
-          const errorMessage = error.response?.data?.message || 'Update failed';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          return {
-            success: false,
-            error: errorMessage,
-          };
-        }
-      },
 
-      // Add this method to check auth status on app load
+updateProfile: async (data) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await api.patch('/auth/profile', data);
+    
+    console.log('Update profile response:', response.data);
+    
+    const updatedUser = response.data?.data || response.data;
+    
+    if (!updatedUser) {
+      throw new Error('No user data returned from server');
+    }
+    
+    // Get current user
+    const currentUser = get().user;
+        const mergedUser = {
+      ...currentUser,
+      ...updatedUser,
+      profile: {
+        ...currentUser?.profile,
+        ...updatedUser?.profile
+      },
+      employeeData: {
+        ...currentUser?.employeeData,
+        ...updatedUser?.employeeData
+      }
+    };
+    
+    console.log('Merged user:', mergedUser);
+    
+    set({
+      user: mergedUser,
+      isLoading: false,
+      error: null,
+    });
+    
+    const storedData = JSON.parse(localStorage.getItem('auth-storage') || '{}');
+    localStorage.setItem('auth-storage', JSON.stringify({
+      ...storedData,
+      state: {
+        ...storedData.state,
+        user: mergedUser,
+        isAuthenticated: true
+      }
+    }));
+    
+    return { success: true, data: mergedUser };
+  } catch (error) {
+    console.error('Update profile error:', error.response?.data);
+    const errorMessage = error.response?.data?.message || 'Update failed';
+    set({
+      isLoading: false,
+      error: errorMessage,
+    });
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+},
+
       checkAuth: async () => {
         set({ isLoading: true });
         const token = localStorage.getItem('accessToken');
@@ -134,7 +165,6 @@ export const useAuthStore = create(
         }
         
         try {
-          // Optional: Verify token by fetching profile
           const response = await api.get('/auth/profile');
           set({
             user: response.data.data,

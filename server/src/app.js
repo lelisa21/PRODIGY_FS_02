@@ -38,16 +38,20 @@ app.use(xss());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  max: 500, 
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later'
   },
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    console.log(`Rate limit hit by IP: ${req.ip}`); 
+    res.status(options.statusCode).send(options.message);
+  },
 });
 app.use('/api', limiter);
-
+app.set('trust proxy', 1);
 app.use(requestLogger);
 
 app.use('/uploads', express.static('uploads'));

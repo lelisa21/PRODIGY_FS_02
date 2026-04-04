@@ -16,7 +16,7 @@ export const signupValidator = Joi.object({
     lastName: Joi.string().required().messages({
       'any.required': 'Last name is required'
     }),
-    phone: Joi.string().optional(),
+    phone: Joi.string().allow('', null).optional(),
     avatar: Joi.string().optional()
   }).required(),
    department: Joi.string().optional(),
