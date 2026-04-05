@@ -32,6 +32,8 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
     "User";
 
   const handleLogout = async () => {
+     const confirmed = window.confirm('Are you sure you want to logout?');
+     if (!confirmed) return;
     await logout();
     showSuccess("Logged out successfully");
     navigate("/login");

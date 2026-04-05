@@ -19,6 +19,7 @@ import TextReveal from "../components/animations/TextReveal";
 import ParticleWave from "../components/animations/ParticleWave";
 import FloatingElements from "../components/animations/FloatingElements";
 import AnimatedBackground3D from "../components/animations/AnimatedBackground3D";
+import UnifiedRope3D from "../components/animations/UnifiedRope3D";
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
@@ -97,17 +98,17 @@ const Landing = () => {
     },
   ];
 
-//   const stats = [
-//     { value: "1000+", label: "Active Users", icon: <FiUsers /> },
-//     { value: "50+", label: "Enterprise Clients", icon: <FiAward /> },
-//     { value: "91.9%", label: "Uptime", icon: <FiShield /> },
-//     { value: "24/7", label: "Support", icon: <FiCheck /> },
-//   ];
+  //   const stats = [
+  //     { value: "1000+", label: "Active Users", icon: <FiUsers /> },
+  //     { value: "50+", label: "Enterprise Clients", icon: <FiAward /> },
+  //     { value: "91.9%", label: "Uptime", icon: <FiShield /> },
+  //     { value: "24/7", label: "Support", icon: <FiCheck /> },
+  //   ];
 
   return (
     <div className="min-h-screen bg-linear-to-br from-secondary-50 to-white overflow-hidden">
       {/* Animated Backgrounds */}
-      <AnimatedBackground3D />
+
       <ParticleWave />
       <FloatingElements />
 
@@ -283,10 +284,14 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 3D Rope Animation Section */}
       <section className="relative py-10 overflow-hidden">
-        <div className="absolute inset-0 bg-white-200" />
-        <RopeAnimation3D />
+        <div className="absolute inset-0 z-10">
+          <AnimatedBackground3D />
+        </div>
+
+        <div className="relative z-10">
+          <UnifiedRope3D />
+        </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 text-center">
           <motion.div

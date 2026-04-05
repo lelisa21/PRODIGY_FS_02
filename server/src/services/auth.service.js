@@ -348,6 +348,130 @@ class AuthService {
       throw new AppError("Invalid or expired token", 401);
     }
   }
+
+async changePassword(userId, currentPassword, newPassword) {
+  const user = await User.findById(userId).select("+password");
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+  
+  const isPasswordValid = await user.comparePassword(currentPassword);
+  if (!isPasswordValid) {
+    throw new AppError("Current password is incorrect", 401);
+  }
+  
+  user.password = newPassword;
+  user.refreshTokens = [];
+  user.passwordChangedAt = new Date();
+  await user.save();
+
+  await redisClient.del(`user:${userId}`);
+
+  logger.info(`User ${user.email} changed password at ${new Date().toISOString()}`);
+
+  await emailService.sendPasswordChangeNotification(
+    user.email,
+    user.profile.firstName,
+  );
+
+  return { success: true };
+}
+
+
+
+async refreshToken(refreshToken) {
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const rememberMe = Boolean(decoded?.rm);
+
+    const user = await User.findById(decoded.id).select("+refreshTokens");
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+    if (!user.refreshTokens || !user.refreshTokens.includes(refreshToken)) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+    
+    const tokens = this.generateTokens(user, rememberMe);
+    
+    user.refreshTokens = user.refreshTokens.filter(
+      (token) => token !== refreshToken,
+    );
+    user.refreshTokens.push(tokens.refreshToken);
+    if (user.refreshTokens.length > 5) {
+      user.refreshTokens = user.refreshTokens.slice(-5);
+    }
+    await user.save();
+
+    return { ...tokens, rememberMe };
+  } catch (error) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+}
+
+async logout(userId, refreshToken) {
+  const user = await User.findById(userId).select("+refreshTokens");
+  if (user && user.refreshTokens) {
+    user.refreshTokens = user.refreshTokens.filter(
+      (token) => token !== refreshToken,
+    );
+    await user.save();
+  }
+  await redisClient.del(`user:${userId}`);
+  await redisClient.del(`employee:${userId}`);
+
+  logger.info(`User ${userId} logged out at ${new Date().toISOString()}`);
+}
+
+async forgotPassword(email) {
+  const user = await User.findOne({ email });
+  if (!user) return;
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetTokenHash = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  user.passwordResetToken = resetTokenHash;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  await user.save();
+
+  await emailService.sendPasswordResetEmail(
+    user.email,
+    user.profile.firstName,
+    resetToken,
+  );
+
+  logger.info(`Password reset email requested to ${user.email}`);
+}
+
+async resetPassword(token, newPassword) {
+  const resetTokenHash = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: resetTokenHash,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new AppError("Invalid or expired reset token", 400);
+  }
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.refreshTokens = [];
+  user.passwordChangedAt = new Date();
+  await user.save();
+
+  await redisClient.del(`user:${user._id}`);
+
+  logger.info(`User ${user.email} reset their password`);
+}
+
 }
 
 export default new AuthService();

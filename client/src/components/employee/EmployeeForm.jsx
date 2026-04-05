@@ -136,7 +136,7 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
           >
             <Input
               label="Full Name"
-              placeholder="John Doe"
+              placeholder="Laloo Hailu"
               icon={<FiUser />}
               error={errors.name?.message}
               required
@@ -147,7 +147,7 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
               <Input
                 label="Email Address"
                 type="email"
-                placeholder="john@company.com"
+                placeholder="laloo@futurecompany.com"
                 icon={<FiMail />}
                 error={errors.email?.message}
                 required
@@ -156,7 +156,7 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
               
               <Input
                 label="Phone Number"
-                placeholder="+1 234 567 8900"
+                placeholder="+25194 567 8900"
                 icon={<FiPhone />}
                 error={errors.phone?.message}
                 {...register('phone')}
@@ -235,7 +235,7 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
           >
             <Input
               label="Location"
-              placeholder="New York, NY"
+              placeholder="Addis Ababa, AA"
               icon={<FiMapPin />}
               error={errors.location?.message}
               {...register('location')}
