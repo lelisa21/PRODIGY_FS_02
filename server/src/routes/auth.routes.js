@@ -1,7 +1,7 @@
 import express from "express";
 import authController, { upload } from "../controllers/auth.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
-import multer from "multer";
+
 const router = express.Router();
 
 // Public routes
@@ -16,8 +16,12 @@ router.post("/logout", protect, authController.logout);
 router.post("/change-password", protect, authController.changePassword);
 router.get("/profile", protect, authController.getProfile);
 router.patch("/profile", protect, authController.updateProfile);
-
-
-
 router.post('/upload-avatar', protect, upload.single('avatar'), authController.uploadAvatar);
+
+router.get("/sessions", protect, authController.getSessions);
+router.delete("/sessions/:sessionId", protect, authController.revokeSession);
+router.delete("/sessions/all", protect, authController.revokeAllSessions);
+
+router.delete("/user/account", protect, authController.deleteAccount);
+
 export default router;

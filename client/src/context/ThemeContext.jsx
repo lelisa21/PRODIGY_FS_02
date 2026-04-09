@@ -16,7 +16,7 @@ export const ThemeProvider = ({ children }) => {
   // Use your localStorage hook for persistence
   const [isDarkMode, setIsDarkMode] = useLocalStorage('theme', false);
   const [accentColor, setAccentColor] = useLocalStorage('accentColor', 'amber');
-  const [fontSize, setFontSize] = useLocalStorage('fontSize', 'medium');
+  const [fontSize, setFontSize] = useLocalStorage('fontSize', '"medium"');
   const [reducedMotion, setReducedMotion] = useLocalStorage('reducedMotion', false);
 
   // Apply theme to DOM

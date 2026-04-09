@@ -1,3 +1,4 @@
+// src/controllers/auth.controller.js
 import authService from '../services/auth.service.js';
 import User from '../models/User.model.js';
 import logger from '../utils/logger.js';
@@ -12,11 +13,11 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 
 // for avatar
-import fs  from 'fs';
-import multer from 'multer'
+import fs from 'fs';
+import multer from 'multer';
 import path from 'path';
 
-  // single method for avatar
+// single method for avatar
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = 'uploads/avatars';
@@ -37,7 +38,7 @@ export const upload = multer({
 });
 
 class AuthController {
-   signup = catchAsync(async (req, res) => {
+  signup = catchAsync(async (req, res) => {
     const { error } = signupValidator.validate(req.body);
     if (error) {
       logger.warn(`Signup validation failed: ${error.details[0].message}`);
@@ -207,19 +208,6 @@ class AuthController {
     });
   });
 
-  setRefreshTokenCookie(res, token, rememberMe = true) {
-    const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
-    res.cookie('refreshToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      ...(maxAge ? { maxAge } : {})
-    });
-  }
-
-
-
-
   uploadAvatar = catchAsync(async (req, res) => {
     if (!req.file) {
       throw new AppError('No file uploaded', 400);
@@ -239,7 +227,143 @@ class AuthController {
     });
   });
 
+  // ========== SESSION METHODS ==========
+  getSessions = catchAsync(async (req, res) => {
+    const user = await User.findById(req.user.id).select('+refreshTokens');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Get current session from token
+    const currentToken = req.headers.authorization?.split(' ')[1];
+    
+    // Format sessions
+    const sessions = (user.refreshTokens || []).map((token, index) => ({
+      id: `session_${index}`,
+      device: 'Browser Session',
+      location: 'Unknown location',
+      lastActive: user.lastLogin || new Date(),
+      current: token === currentToken
+    }));
+    
+    // Add current browser session if not in refresh tokens
+    if (sessions.length === 0) {
+      sessions.push({
+        id: 'current_session',
+        device: req.headers['user-agent'] || 'Unknown Device',
+        location: 'Current session',
+        lastActive: new Date(),
+        current: true
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: sessions
+    });
+  });
 
+  revokeSession = catchAsync(async (req, res) => {
+    const { sessionId } = req.params;
+    const user = await User.findById(req.user.id).select('+refreshTokens');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Parse session index from ID
+    const sessionIndex = parseInt(sessionId.split('_')[1]);
+    
+    if (isNaN(sessionIndex) || sessionIndex >= (user.refreshTokens || []).length) {
+      return res.status(404).json({
+        success: false,
+        message: 'Session not found'
+      });
+    }
+    
+    // Remove the specific refresh token
+    user.refreshTokens.splice(sessionIndex, 1);
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Session revoked successfully'
+    });
+  });
+
+  revokeAllSessions = catchAsync(async (req, res) => {
+    const user = await User.findById(req.user.id).select('+refreshTokens');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Get current token
+    const currentToken = req.headers.authorization?.split(' ')[1];
+    
+    // Keep current session, remove others
+    user.refreshTokens = user.refreshTokens.filter(token => token === currentToken);
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'All other sessions revoked successfully'
+    });
+  });
+
+  deleteAccount = catchAsync(async (req, res) => {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Delete user
+    await User.findByIdAndDelete(req.user.id);
+    
+    // Also delete related employee record if exists
+    try {
+      const Employee = await import('../models/Employee.model.js');
+      await Employee.default.findOneAndDelete({ user: req.user.id });
+    } catch (err) {
+      logger.info('No employee record to delete');
+    }
+    
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+    
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  });
+
+  setRefreshTokenCookie(res, token, rememberMe = true) {
+    const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
+    res.cookie('refreshToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      ...(maxAge ? { maxAge } : {})
+    });
+  }
 }
 
 export default new AuthController();

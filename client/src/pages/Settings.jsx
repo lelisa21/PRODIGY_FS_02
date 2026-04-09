@@ -943,7 +943,7 @@ const Settings = () => {
                         <Button
                           onClick={() => {
                             setShowDeleteConfirm(false);
-                            setDeleteConfirmText("");
+                            setDeleteConfirmText("Deleted");
                           }}
                           variant="outline"
                         >
