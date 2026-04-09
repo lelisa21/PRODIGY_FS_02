@@ -38,7 +38,7 @@ const Input = ({
         <input
           type={inputType}
           className={clsx(
-            'block w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-base',
+            'block w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base',
             'focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200',
             'hover:border-gray-400 transition-all',
             icon && iconPosition === 'left' && 'pl-9',

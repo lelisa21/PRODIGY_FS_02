@@ -3,8 +3,9 @@ import authRoutes from './auth.routes.js';
 import employeeRoutes from './employee.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import messageRoutes from './message.routes.js';
+import reportRoutes from './report.routes.js';
 import { protect } from '../middlewares/auth.middleware.js';
-
+import activityRoute from "../routes/activityLog.routes.js"
 const router = express.Router();
 
 // Health check
@@ -23,5 +24,7 @@ router.use('/auth', authRoutes);
 router.use('/employees', protect, employeeRoutes);
 router.use('/dashboard', protect, dashboardRoutes);
 router.use('/messages', protect, messageRoutes);
+router.use('/reports', protect, reportRoutes);
+router.use("/activities" , protect , activityRoute);
 
 export default router;

@@ -28,8 +28,12 @@ const startServer = async () => {
     await connectDB();
     logger.info("MongoDB connected successfully");
 
-    await redisClient.connect();
-    logger.info(" Redis connected successfully");
+    try {
+      await redisClient.connect();
+      logger.info("Redis connected successfully");
+    } catch (error) {
+      logger.warn("Redis unavailable, continuing without cache", error);
+    }
 
     const server = http.createServer(app);
     initSocket(server);
@@ -45,7 +49,9 @@ const startServer = async () => {
       logger.info("Received shutdown signal");
       server.close(async () => {
         logger.info("HTTP server closed");
-        await redisClient.quit();
+        if (redisClient.isOpen) {
+          await redisClient.quit();
+        }
         await mongoose.connection.close();
         logger.info("Database connections closed");
         process.exit(0);

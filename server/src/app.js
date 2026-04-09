@@ -14,16 +14,24 @@ import { notFoundHandler } from './middlewares/notFound.js';
 
 const app = express();
 
+const isProduction = process.env.NODE_ENV === "production";
+const frontendUrl = process.env.FRONTEND_URL;
+const isLocalhost =
+  typeof frontendUrl === "string" && /localhost|127\.0\.0\.1/i.test(frontendUrl);
+const allowAllOrigins = !frontendUrl || (isProduction && isLocalhost);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(
+  cors({
+    origin: allowAllOrigins ? true : frontendUrl,
+    credentials: true,
+    optionsSuccessStatus: 200,
+  }),
+);
 
 app.use(compression());
 
@@ -34,6 +42,8 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 
 app.use(xss());
+
+app.set("trust proxy", 1);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -51,7 +61,6 @@ const limiter = rateLimit({
   },
 });
 app.use('/api', limiter);
-app.set('trust proxy', 1);
 app.use(requestLogger);
 
 app.use('/uploads', express.static('uploads'));

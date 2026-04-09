@@ -50,11 +50,8 @@ const ForgotPassword = () => {
       transition={{ duration: 0.5 }}
       className="w-full max-w-7xl"
     >
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-secondary-100">
+      <div className="bg-white rounded-2xl max-w-100 shadow-xl p-4 border border-secondary-100">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-linear-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FiMail size={32} className="text-white" />
-          </div>
           <h1 className="text-2xl font-bold text-secondary-900">Forgot Password?</h1>
           <p className="text-secondary-600 mt-2">
             Enter your email and we'll send you a link to reset your password
@@ -62,7 +59,7 @@ const ForgotPassword = () => {
         </div>
         
         {!isSubmitted ? (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
             <Input
               label="Email Address"
               type="email"
@@ -75,7 +72,7 @@ const ForgotPassword = () => {
             
             <Button
               type="submit"
-              variant="primary"
+              variant="secondary"
               size="lg"
               fullWidth
               isLoading={isLoading}
@@ -85,7 +82,7 @@ const ForgotPassword = () => {
             </Button>
             
             <div className="text-center">
-              <Link to="/login" className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700">
+              <Link to="/login" className="inline-flex items-center gap-2  text-[#0286bf] hover:text-primary-400">
                 <FiArrowLeft size={16} />
                 Back to Login
               </Link>

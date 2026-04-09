@@ -1,7 +1,17 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 
-const COLORS = ['#f9a155', '#e88638', '#d86a2a', '#b85325', '#97451f'];
+const COLORS = [
+  "#1A3A6E", 
+  "#2A7CFF",  
+  "#FF69B4",  
+  "#C400FF",  
+  "#00CC99", 
+  "#FFCC00", 
+  "#FF8800", 
+  "#FF4444",  
+  "#FFDD44"   
+];
 
 const DepartmentPieChart = ({ data, loading = false }) => {
   if (loading) {

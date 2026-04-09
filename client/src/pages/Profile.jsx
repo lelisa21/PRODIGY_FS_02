@@ -8,6 +8,11 @@ import { useToast } from "../context/ToastContext";
 import { FadeIn, SlideIn } from "../components/animations";
 import api from "../services/api";
 const Profile = () => {
+  const assetBaseRaw =
+    import.meta.env.VITE_ASSET_URL || import.meta.env.VITE_API_URL || "";
+  const assetBase = assetBaseRaw
+    .replace(/\/api\/v1\/?$/i, "")
+    .replace(/\/+$/i, "");
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -89,8 +94,6 @@ const Profile = () => {
     if (formData.email !== user?.email && formData.email) {
       payload.email = formData.email;
     }
-
-    console.log("Sending payload:", payload);
 
     if (Object.keys(payload).length === 0) {
       showError("No changes to update");
@@ -202,14 +205,14 @@ const Profile = () => {
 
       <SlideIn direction="up">
         <div className="bg-white rounded-xl shadow-soft border border-secondary-200 overflow-hidden">
-          <div className="relative h-32 bg-linear-to-r from-primary-500 to-primary-600">
-            <div className="absolute -bottom-12 left-6">
+          <div className="relative h-20 bg-linear-to-r from-[#0f729c] to-[#003b54]">
+            <div className="absolute -bottom-10 left-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-xl bg-white p-1 shadow-md">
+                <div className="w-24 h-24 rounded-xl bg-white  shadow-md">
                   {user?.profile?.avatar &&
                   user.profile.avatar !== "avatar.png" ? (
                     <img
-                      src={`http://localhost:5500/uploads/avatars/${user.profile.avatar}`}
+                      src={`${assetBase}/uploads/avatars/${user.profile.avatar}`}
                       className="w-full h-full rounded-lg object-cover"
                       alt="avatar"
                     />

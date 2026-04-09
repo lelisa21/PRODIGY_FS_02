@@ -9,7 +9,13 @@ class WebSocketService {
   connect() {
     if (this.socket) return;
     const token = localStorage.getItem('accessToken');
-    this.socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5500', {
+    const wsUrl =
+      import.meta.env.VITE_WS_URL ||
+      (import.meta.env.MODE === 'development'
+        ? 'http://localhost:5500'
+        : window.location.origin);
+
+    this.socket = io(wsUrl, {
       auth: { token },
       transports: ['websocket'],
     });

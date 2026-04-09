@@ -3,10 +3,16 @@ import jwt from 'jsonwebtoken';
 
 let io;
 
+const isProduction = process.env.NODE_ENV === "production";
+const frontendUrl = process.env.FRONTEND_URL;
+const isLocalhost =
+  typeof frontendUrl === "string" && /localhost|127\.0\.0\.1/i.test(frontendUrl);
+const allowAllOrigins = !frontendUrl || (isProduction && isLocalhost);
+
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+      origin: allowAllOrigins ? true : frontendUrl,
       credentials: true,
     },
   });

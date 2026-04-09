@@ -12,12 +12,8 @@ class RedisClient {
 
   async connect() {
     try {
-      // Create Redis client with retry strategy
-      this.client = new Redis({
-        host: process.env.REDIS_HOST || 'localhost',
-        port: process.env.REDIS_PORT || 6379,
-        password: process.env.REDIS_PASSWORD,
-        db: process.env.REDIS_DB || 0,
+      const redisUrl = process.env.REDIS_URL;
+      const baseOptions = {
         retryStrategy: (times) => {
           this.retryCount = times;
           if (times > this.maxRetries) {
@@ -25,7 +21,9 @@ class RedisClient {
             return null;
           }
           const delay = Math.min(times * 100, 3000);
-          logger.warn(`Redis reconnecting in ${delay}ms (attempt ${times}/${this.maxRetries})`);
+          logger.warn(
+            `Redis reconnecting in ${delay}ms (attempt ${times}/${this.maxRetries})`,
+          );
           return delay;
         },
         maxRetriesPerRequest: 3,
@@ -35,18 +33,29 @@ class RedisClient {
         disconnectTimeout: 2000,
         commandTimeout: 5000,
         keepAlive: 30000,
-      });
+      };
 
-      // Create subscriber client
-      this.subscriber = new Redis({
+      const hostOptions = {
         host: process.env.REDIS_HOST || 'localhost',
         port: process.env.REDIS_PORT || 6379,
         password: process.env.REDIS_PASSWORD,
         db: process.env.REDIS_DB || 0,
-        retryStrategy: (times) => {
-          return Math.min(times * 100, 3000);
-        },
-      });
+      };
+
+      // Create Redis client with retry strategy
+      this.client = redisUrl
+        ? new Redis(redisUrl, baseOptions)
+        : new Redis({ ...hostOptions, ...baseOptions });
+
+      // Create subscriber client
+      this.subscriber = redisUrl
+        ? new Redis(redisUrl, {
+            retryStrategy: (times) => Math.min(times * 100, 3000),
+          })
+        : new Redis({
+            ...hostOptions,
+            retryStrategy: (times) => Math.min(times * 100, 3000),
+          });
 
       // Event handlers for main client
       this.client.on('connect', () => {

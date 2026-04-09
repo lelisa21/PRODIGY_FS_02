@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   LineChart,
   Line,
@@ -15,15 +15,23 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import { motion } from 'framer-motion';
+} from "recharts";
+import { motion } from "framer-motion";
 
 const Chart = ({
-  type = 'line',
+  type = "line",
   data,
   dataKey,
-  xAxisKey = 'name',
-  colors = ['#f9a155', '#e88638', '#d86a2a'],
+  xAxisKey = "name",
+  colors = [
+    "#7AC8E8",
+    "#1AC4C4",
+    "#FF69B4",
+    "#FFCC66",
+    "#88CC44",
+    "#FFAA33",
+    "#FFDD88",
+  ],
   height = 300,
   loading = false,
   title,
@@ -35,10 +43,10 @@ const Chart = ({
       </div>
     );
   }
-  
+
   const renderChart = () => {
     switch (type) {
-      case 'line':
+      case "line":
         return (
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -46,9 +54,9 @@ const Chart = ({
             <YAxis stroke="#6b7280" />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
               }}
             />
             <Legend />
@@ -76,8 +84,8 @@ const Chart = ({
             )}
           </LineChart>
         );
-      
-      case 'bar':
+
+      case "bar":
         return (
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -85,9 +93,9 @@ const Chart = ({
             <YAxis stroke="#6b7280" />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
               }}
             />
             <Legend />
@@ -101,16 +109,12 @@ const Chart = ({
                 />
               ))
             ) : (
-              <Bar
-                dataKey={dataKey}
-                fill={colors[0]}
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey={dataKey} fill={colors[0]} radius={[4, 4, 0, 0]} />
             )}
           </BarChart>
         );
-      
-      case 'area':
+
+      case "area":
         return (
           <AreaChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -118,9 +122,9 @@ const Chart = ({
             <YAxis stroke="#6b7280" />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
               }}
             />
             <Legend />
@@ -133,12 +137,12 @@ const Chart = ({
             />
           </AreaChart>
         );
-      
+
       default:
         return null;
     }
   };
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -146,7 +150,9 @@ const Chart = ({
       className="w-full"
     >
       {title && (
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4">{title}</h3>
+        <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+          {title}
+        </h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
         {renderChart()}

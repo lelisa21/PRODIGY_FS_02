@@ -67,11 +67,11 @@ const LoginForm = () => {
               <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
                 <FiCompass className="text-white text-2xl" />
               </div>
-              <h2 className="text-3xl font-bold text-white tracking-tighter"> GreatTeam</h2>
+              <h2 onClick = {() => navigate("/")} className="text-3xl font-bold text-white tracking-tighter cursor-pointer"> GreatTeam</h2>
             </div>
             
             <h1 className="text-3xl font-semibold text-white leading-none tracking-tighter mb-6">
-              Welcome back! 👋
+              Welcome back! 
             </h1>
             <p className="text-indigo-100 text-xl">
               Great to see you again. Let's get back to building amazing things.

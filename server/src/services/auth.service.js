@@ -6,6 +6,7 @@ import logger from "../utils/logger.js";
 import emailService from "./email.service.js";
 import redisClient from "../utils/redisClient.js";
 import Employee from "../models/Employee.model.js";
+import activityLogService from "./activityLog.service.js";
 class AuthService {
   async signup(userData) {
     const existingUser = await User.findOne({ email: userData.email });
@@ -136,6 +137,19 @@ class AuthService {
         JSON.stringify(employee.toJSON()),
       );
     }
+     await activityLogService.log({
+    userId: user._id,
+    action: 'LOGIN',
+    resource: 'USER',
+    resourceId: user._id,
+    details: {
+      description: `${user.profile.firstName} ${user.profile.lastName} logged in`,
+      targetName: `${user.profile.firstName} ${user.profile.lastName}`,
+      targetId: user._id
+    },
+    req,
+    status: 'SUCCESS'
+  });
 
     logger.info(`User logged in successfully: ${user.email}`, {
       userId: user._id,

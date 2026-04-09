@@ -148,7 +148,11 @@ class AuthController {
     }
 
     // Clear cookie
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
 
     res.status(200).json({
       success: true,
@@ -208,7 +212,7 @@ class AuthController {
     res.cookie('refreshToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       ...(maxAge ? { maxAge } : {})
     });
   }

@@ -69,12 +69,12 @@ const ResetPassword = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md"
+      className="w-full"
     >
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-secondary-100">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-linear-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FiLock size={32} className="text-white" />
+      <div className="bg-white rounded-2xl shadow-xl p-4 max-w-150" >
+        <div className="text-center mb-4 ">
+          <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <FiLock size={22} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-secondary-900">Reset Password</h1>
           <p className="text-secondary-600 mt-2">
@@ -127,7 +127,7 @@ const ResetPassword = () => {
             </Button>
             
             <div className="text-center">
-              <Link to="/login" className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700">
+              <Link to="/login" className="inline-flex items-center gap-2  text-[#0286bf] hover:text-primary-700">
                 <FiArrowLeft size={16} />
                 Back to Login
               </Link>

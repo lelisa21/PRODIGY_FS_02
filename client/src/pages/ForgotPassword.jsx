@@ -10,7 +10,7 @@ const ForgotPassword = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 w-full max-w-5xl mx-auto p-6 flex justify-center"
+        className="relative z-10 mx-auto p-6 flex justify-center"
       >
         <ForgotPasswordForm />
       </motion.div>

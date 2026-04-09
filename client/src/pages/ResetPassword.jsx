@@ -10,7 +10,7 @@ const ResetPassword = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 w-full max-w-5xl mx-auto p-6 flex justify-center"
+        className="relative z-10 w-full max-w-4xl mx-auto p-6 flex justify-center"
       >
         <ResetPasswordForm />
       </motion.div>

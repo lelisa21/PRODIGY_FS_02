@@ -25,16 +25,20 @@ class EmployeeController {
     });
 
     try {
-      await ActivityLog.create({
-        user: req.user.id,
-        action: 'CREATE',
-        resource: 'EMPLOYEE',
-        resourceId: result.employee._id,
-        details: { employeeId: result.employee.employmentDetails.employeeId },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-        status: 'SUCCESS'
-      });
+      await activityLogService.log({
+    userId: req.user.id,
+    action: 'CREATE',
+    resource: 'EMPLOYEE',
+    resourceId: employee._id,
+    details: {
+      description: `${req.user.profile.firstName} created employee ${employee.employmentDetails.workEmail}`,
+      targetName: `${employee.profile.firstName} ${employee.profile.lastName}`,
+      targetId: employee._id,
+      employeeData: employee
+    },
+    req,
+    status: 'SUCCESS'
+  });
     } catch (error) {
       // Silently ignore logging errors
     }

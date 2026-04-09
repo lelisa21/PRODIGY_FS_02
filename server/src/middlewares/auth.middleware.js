@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js';
 import redisClient from '../config/redis.js';
+import logger from '../utils/logger.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 
@@ -20,11 +21,17 @@ export const protect = catchAsync(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    let user = await redisClient.get(`user:${decoded.id}`);
-    
-    if (user) {
-      user = JSON.parse(user);
-    } else {
+    let user = null;
+    try {
+      const cached = await redisClient.get(`user:${decoded.id}`);
+      if (cached) {
+        user = JSON.parse(cached);
+      }
+    } catch (error) {
+      logger.warn('Redis unavailable, skipping cache', error);
+    }
+
+    if (!user) {
       user = await User.findById(decoded.id).select('-refreshTokens');
       
       if (!user) {
@@ -32,7 +39,11 @@ export const protect = catchAsync(async (req, res, next) => {
       }
 
       // Cache user
-      await redisClient.setEx(`user:${decoded.id}`, 3600, JSON.stringify(user));
+      try {
+        await redisClient.setEx(`user:${decoded.id}`, 3600, JSON.stringify(user));
+      } catch (error) {
+        logger.warn('Redis unavailable, cache not updated', error);
+      }
     }
 
     // Check if password was changed after token was issued
