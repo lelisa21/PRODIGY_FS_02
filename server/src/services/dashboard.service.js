@@ -1,6 +1,6 @@
 import Employee from '../models/Employee.model.js';
 import ActivityLog from '../models/ActivityLog.model.js';
-
+import User from '../models/User.model.js';
 class DashboardService {
   async getStats() {
     const [
@@ -240,38 +240,113 @@ class DashboardService {
     return metrics;
   }
 
-  async getRecentActivity(limit = 10) {
+   async getRecentActivity(limit = 20) {
+    // First, get the activities
     const activities = await ActivityLog.find()
       .sort({ createdAt: -1 })
       .limit(limit)
-      .populate('user', 'profile email')
       .lean();
+
+    // Get all unique user IDs from activities
+    const userIds = [...new Set(activities.map(a => a.user?.toString()).filter(Boolean))];
+    
+    // Manually fetch all users
+    const users = await User.find({ _id: { $in: userIds } }).lean();
+    
+    // Create a map for quick user lookup
+    const userMap = new Map();
+    users.forEach(user => {
+      userMap.set(user._id.toString(), user);
+    });
 
     const actionMap = {
       CREATE: 'create',
       UPDATE: 'update',
       DELETE: 'delete',
-      LOGIN: 'default',
-      LOGOUT: 'default',
-      VIEW: 'default'
+      LOGIN: 'login',
+      LOGOUT: 'logout',
+      VIEW: 'view'
     };
 
-    return activities.map(activity => {
-      const userName = activity.user?.profile
-        ? `${activity.user.profile.firstName} ${activity.user.profile.lastName}`.trim()
-        : activity.user?.email || 'System';
-      const resource = activity.resource?.toLowerCase() || 'record';
-      const action = activity.action?.toLowerCase() || 'updated';
-
-      return {
+    // Format activities with user data
+    const formattedActivities = [];
+    
+    for (const activity of activities) {
+      const user = userMap.get(activity.user?.toString());
+      
+      // Extract user name
+      let userName = 'System';
+      let userInitials = 'SY';
+      
+      if (user) {
+        if (user.profile?.firstName && user.profile?.lastName) {
+          userName = `${user.profile.firstName} ${user.profile.lastName}`;
+          userInitials = (user.profile.firstName[0] + user.profile.lastName[0]).toUpperCase();
+        } else if (user.profile?.firstName) {
+          userName = user.profile.firstName;
+          userInitials = user.profile.firstName[0].toUpperCase();
+        } else if (user.email) {
+          userName = user.email.split('@')[0];
+          userInitials = userName[0].toUpperCase();
+        }
+      } else if (activity.user) {
+        // User ID exists but user not found in database
+        userName = `User_${activity.user.toString().slice(-6)}`;
+        userInitials = '??';
+      }
+      
+      // Generate description
+      let description = '';
+      const resource = activity.resource?.toLowerCase() || 'item';
+      
+      switch (activity.action) {
+        case 'CREATE':
+          description = `${userName} created a ${resource}`;
+          break;
+        case 'UPDATE':
+          description = `${userName} updated a ${resource}`;
+          break;
+        case 'DELETE':
+          description = `${userName} deleted a ${resource}`;
+          break;
+        case 'LOGIN':
+          description = `${userName} logged in`;
+          break;
+        case 'LOGOUT':
+          description = `${userName} logged out`;
+          break;
+        case 'VIEW':
+          description = `${userName} viewed ${resource}`;
+          break;
+        default:
+          description = `${userName} performed ${activity.action}`;
+      }
+      
+      // Use custom description if available
+      if (activity.details?.description) {
+        description = activity.details.description;
+      }
+      
+      formattedActivities.push({
         id: activity._id,
         type: actionMap[activity.action] || 'default',
-        description: activity.details?.description || `${userName} ${action} ${resource}`,
+        action: activity.action,
+        description: description,
         timestamp: activity.createdAt,
-        user: userName
-      };
-    });
+        user: userName,
+        userInitials: userInitials,
+        userId: activity.user,
+        userEmail: user?.email,
+        resource: activity.resource,
+        resourceId: activity.resourceId,
+        ipAddress: activity.ipAddress,
+        status: activity.status,
+        details: activity.details
+      });
+    }
+    
+    return formattedActivities;
   }
-}
+  }
 
 export default new DashboardService();

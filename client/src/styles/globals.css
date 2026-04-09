@@ -1,8 +1,84 @@
 @import "tailwindcss";
+@import "./themes.css";
 
 button{
     cursor: pointer;
 }
+
+body{
+background: linear-gradient(to bottom right, #3d4342c3, #3e42396d);
+color:white;
+}
+
+
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #1f1f2a;
+  --text-secondary: #6f6f82;
+  --border-color: #e4e4e9;
+}
+
+.dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --border-color: #404040;
+}
+
+.bg-white {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-gray-50, .bg-secondary-50 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.text-gray-900, .text-secondary-900 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-600, .text-secondary-600 {
+  color: var(--text-secondary) !important;
+}
+
+.border-gray-200, .border-secondary-200 {
+  border-color: var(--border-color) !important;
+}
+
+/* Primary color classes */
+.bg-primary-50 {
+  background-color: var(--color-primary-50) !important;
+}
+.bg-primary-100 {
+  background-color: var(--color-primary-100) !important;
+}
+.bg-primary-500 {
+  background-color: var(--color-primary-500) !important;
+}
+.bg-primary-600 {
+  background-color: var(--color-primary-600) !important;
+}
+.text-primary-500 {
+  color: var(--color-primary-500) !important;
+}
+.text-primary-600 {
+  color: var(--color-primary-600) !important;
+}
+.border-primary-500 {
+  border-color: var(--color-primary-500) !important;
+}
+
+/* Gradient backgrounds */
+.from-primary-500 {
+  --tw-gradient-from: var(--color-primary-500) !important;
+}
+.to-primary-600 {
+  --tw-gradient-to: var(--color-primary-600) !important;
+}
+
 @theme {
   --color-primary-50: #fdf8f0;
   --color-primary-100: #fef0e1;

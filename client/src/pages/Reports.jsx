@@ -16,7 +16,6 @@ const Reports = () => {
   const [error, setError] = useState(null);
   const [permissionWarnings, setPermissionWarnings] = useState([]);
   
-  // Real data states
   const [performanceData, setPerformanceData] = useState([]);
   const [attendanceData, setAttendanceData] = useState([]);
   const [salaryData, setSalaryData] = useState([]);
@@ -36,6 +35,12 @@ const Reports = () => {
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   
+  // Helper function to safely get numeric value
+  const safeNumber = (value, defaultValue = 0) => {
+    const num = Number(value);
+    return isNaN(num) ? defaultValue : num;
+  };
+  
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -44,21 +49,26 @@ const Reports = () => {
     const warnings = [];
     
     try {
-      // 1. Fetch employees data (always available)
-      const employeesResponse = await employeeService.getEmployees({ limit: 1000 });
-      const employees = employeesResponse.data || [];
+      // 1. Fetch employees data
+      let employees = [];
+      try {
+        const employeesResponse = await employeeService.getEmployees({ limit: 1000 });
+        employees = employeesResponse?.data || [];
+      } catch (err) {
+        console.warn('Could not fetch employees:', err);
+        warnings.push({ type: 'employees', message: 'Employee data could not be loaded' });
+      }
       
-      // 2. Fetch dashboard stats (available to all)
+      // 2. Fetch dashboard stats
       let dashboardStats = {};
       try {
         const statsResponse = await dashboardService.getStats();
         dashboardStats = statsResponse?.data || {};
       } catch (err) {
         console.warn('Could not fetch stats:', err);
-        warnings.push({ type: 'stats', message: 'Some statistics could not be loaded' });
       }
       
-      // 3. Fetch performance data (admin + manager)
+      // 3. Fetch performance data
       let performanceHistory = {};
       try {
         const performanceResponse = await dashboardService.getPerformance();
@@ -67,19 +77,16 @@ const Reports = () => {
         console.warn('Could not fetch performance:', err);
         if (err.response?.status === 403) {
           warnings.push({ type: 'performance', message: 'Performance data requires manager or admin role' });
-        } else {
-          warnings.push({ type: 'performance', message: 'Performance data could not be loaded' });
         }
       }
       
-      // 4. Fetch attendance stats (available to all authenticated users)
+      // 4. Fetch attendance stats
       let attendanceHistory = {};
       try {
         const attendanceResponse = await dashboardService.getAttendanceStats();
         attendanceHistory = attendanceResponse?.data || {};
       } catch (err) {
         console.warn('Could not fetch attendance:', err);
-        warnings.push({ type: 'attendance', message: 'Attendance data could not be loaded' });
       }
       
       // 5. Fetch salary distribution (admin only)
@@ -92,62 +99,74 @@ const Reports = () => {
           console.warn('Could not fetch salary distribution:', err);
           if (err.response?.status === 403) {
             warnings.push({ type: 'salary', message: 'Salary data requires admin role' });
-          } else {
-            warnings.push({ type: 'salary', message: 'Salary data could not be loaded' });
           }
         }
-      } else {
-        warnings.push({ type: 'salary', message: 'Salary reports are only available for administrators' });
       }
       
-      // 6. Fetch department metrics (available to all)
+      // 6. Fetch department metrics
       let departmentMetrics = {};
       try {
         const deptResponse = await dashboardService.getDepartmentMetrics();
         departmentMetrics = deptResponse?.data || {};
       } catch (err) {
         console.warn('Could not fetch department metrics:', err);
-        warnings.push({ type: 'department', message: 'Department metrics could not be loaded' });
       }
       
       setPermissionWarnings(warnings);
       
-      // Calculate real-time stats from employee data
-      const avgPerformance = employees.length > 0
-        ? employees.reduce((sum, emp) => sum + (emp.performance?.rating || emp.performance || 0), 0) / employees.length
-        : 0;
-      
-      const attendanceRate = employees.length > 0
-        ? employees.reduce((sum, emp) => sum + (emp.attendance?.rate || emp.attendance || 85), 0) / employees.length
-        : 0;
-      
+      // Calculate stats with safe defaults
       const totalEmployees = employees.length;
-      const avgSalary = employees.length > 0
-        ? employees.reduce((sum, emp) => sum + (emp.salary || 0), 0) / employees.length
-        : 0;
+      
+      // Safe average performance calculation
+      let avgPerformance = 0;
+      if (employees.length > 0) {
+        const totalPerformance = employees.reduce((sum, emp) => {
+          const rating = safeNumber(emp?.performance?.rating, safeNumber(emp?.performance, 0));
+          return sum + rating;
+        }, 0);
+        avgPerformance = totalPerformance / employees.length;
+      }
+      
+      // Safe attendance rate calculation
+      let attendanceRate = 0;
+      if (employees.length > 0) {
+        const totalAttendance = employees.reduce((sum, emp) => {
+          const rate = safeNumber(emp?.attendance?.rate, safeNumber(emp?.attendance, 85));
+          return sum + rate;
+        }, 0);
+        attendanceRate = totalAttendance / employees.length;
+      }
+      
+      // Safe salary calculation
+      let avgSalary = 0;
+      if (employees.length > 0 && isAdmin) {
+        const totalSalary = employees.reduce((sum, emp) => {
+          const salary = safeNumber(emp?.salary, safeNumber(emp?.compensation?.salary, 0));
+          return sum + salary;
+        }, 0);
+        avgSalary = totalSalary / employees.length;
+      }
       
       // Count new hires (employees hired in last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const newHires = employees.filter(emp => {
-        const hireDate = emp.hireDate || emp.joinDate;
+        const hireDate = emp?.hireDate || emp?.joinDate || emp?.employeeDetails?.joinDate;
         return hireDate && new Date(hireDate) > thirtyDaysAgo;
       }).length;
       
       // Get unique departments
-      const uniqueDepts = new Set(employees.map(emp => emp.department).filter(Boolean));
+      const uniqueDepts = new Set(employees.map(emp => emp?.department || emp?.employeeDetails?.department).filter(Boolean));
       
       // Process data for charts
       const performanceChartData = processPerformanceData(performanceHistory, dateRange, employees);
-      setPerformanceData(performanceChartData);
-      
       const attendanceChartData = processAttendanceData(attendanceHistory, dateRange, employees);
-      setAttendanceData(attendanceChartData);
-      
-      const salaryChartData = processSalaryData(salaryDistribution, employees);
-      setSalaryData(salaryChartData);
-      
+      const salaryChartData = processSalaryData(salaryDistribution, employees, isAdmin);
       const deptChartData = processDepartmentData(departmentMetrics, employees);
+      
+      setPerformanceData(performanceChartData);
+      setAttendanceData(attendanceChartData);
+      setSalaryData(salaryChartData);
       setDepartmentData(deptChartData);
       
       setStats({
@@ -157,8 +176,8 @@ const Reports = () => {
         newHires,
         avgSalary: Math.round(avgSalary),
         departments: uniqueDepts.size,
-        performanceTrend: dashboardStats.performanceTrend || 0,
-        attendanceTrend: dashboardStats.attendanceTrend || 0
+        performanceTrend: safeNumber(dashboardStats?.performanceTrend, 0),
+        attendanceTrend: safeNumber(dashboardStats?.attendanceTrend, 0)
       });
       
     } catch (err) {
@@ -173,23 +192,24 @@ const Reports = () => {
     // Try to use API data first
     if (data && data.history && data.history.length > 0) {
       return data.history.map(item => ({
-        month: item.month || item.period,
-        performance: item.performance || item.value || 0,
-        target: item.target || 80
+        month: item.month || item.period || 'Unknown',
+        performance: safeNumber(item.performance, safeNumber(item.value, 0)),
+        target: safeNumber(item.target, 80)
       }));
     }
     
     // Fallback: Calculate from employee data
     if (employees && employees.length > 0) {
       const months = getMonthsForRange(range);
-      return months.map((month, index) => {
-        const avgPerf = employees.reduce((sum, emp) => sum + (emp.performance?.rating || emp.performance || 0), 0) / employees.length;
-        return {
-          month,
-          performance: Math.min(100, avgPerf + (Math.random() * 10 - 5)),
-          target: 80
-        };
-      });
+      const avgPerf = employees.reduce((sum, emp) => {
+        return sum + safeNumber(emp?.performance?.rating, safeNumber(emp?.performance, 0));
+      }, 0) / employees.length;
+      
+      return months.map((month) => ({
+        month,
+        performance: Math.min(100, Math.max(0, avgPerf + (Math.random() * 10 - 5))),
+        target: 80
+      }));
     }
     
     return generatePerformanceData(range);
@@ -198,28 +218,31 @@ const Reports = () => {
   const processAttendanceData = (data, range, employees) => {
     if (data && data.history && data.history.length > 0) {
       return data.history.map(item => ({
-        month: item.month || item.period,
-        present: item.present || item.rate || 90,
-        absent: item.absent || (100 - (item.present || 90))
+        month: item.month || item.period || 'Unknown',
+        present: safeNumber(item.present, safeNumber(item.rate, 90)),
+        absent: safeNumber(item.absent, 100 - safeNumber(item.present, 90))
       }));
     }
     
     if (employees && employees.length > 0) {
       const months = getMonthsForRange(range);
-      return months.map((month) => {
-        const avgAttendance = employees.reduce((sum, emp) => sum + (emp.attendance?.rate || emp.attendance || 85), 0) / employees.length;
-        return {
-          month,
-          present: Math.min(100, avgAttendance + (Math.random() * 5 - 2.5)),
-          absent: 100 - avgAttendance
-        };
-      });
+      const avgAttendance = employees.reduce((sum, emp) => {
+        return sum + safeNumber(emp?.attendance?.rate, safeNumber(emp?.attendance, 85));
+      }, 0) / employees.length;
+      
+      return months.map((month) => ({
+        month,
+        present: Math.min(100, Math.max(0, avgAttendance + (Math.random() * 5 - 2.5))),
+        absent: 100 - avgAttendance
+      }));
     }
     
     return generateAttendanceData(range);
   };
   
-  const processSalaryData = (data, employees) => {
+  const processSalaryData = (data, employees, isAdmin) => {
+    if (!isAdmin) return [];
+    
     if (data && data.distribution && data.distribution.length > 0) {
       return data.distribution;
     }
@@ -234,18 +257,18 @@ const Reports = () => {
     };
     
     employees.forEach(emp => {
-      const salary = emp.salary || 0;
+      const salary = safeNumber(emp?.salary, safeNumber(emp?.compensation?.salary, 0));
       if (salary < 30000) ranges['0-30k']++;
       else if (salary < 50000) ranges['30k-50k']++;
       else if (salary < 80000) ranges['50k-80k']++;
       else if (salary < 120000) ranges['80k-120k']++;
-      else ranges['120k+']++;
+      else if (salary >= 120000) ranges['120k+']++;
     });
     
     return Object.entries(ranges).map(([range, count]) => ({
       range,
       count,
-      percentage: employees.length > 0 ? (count / employees.length) * 100 : 0
+      percentage: employees.length > 0 ? Number(((count / employees.length) * 100).toFixed(2)) : 0
     }));
   };
   
@@ -257,20 +280,19 @@ const Reports = () => {
     // Group by department
     const deptMap = new Map();
     employees.forEach(emp => {
-      const dept = emp.department || 'Unassigned';
+      const dept = emp?.department || emp?.employeeDetails?.department || 'Unassigned';
       if (!deptMap.has(dept)) {
-        deptMap.set(dept, { count: 0, avgPerformance: 0, totalPerf: 0 });
+        deptMap.set(dept, { count: 0, totalPerf: 0 });
       }
       const deptData = deptMap.get(dept);
       deptData.count++;
-      deptData.totalPerf += (emp.performance?.rating || emp.performance || 0);
-      deptData.avgPerformance = deptData.totalPerf / deptData.count;
+      deptData.totalPerf += safeNumber(emp?.performance?.rating, safeNumber(emp?.performance, 0));
     });
     
     return Array.from(deptMap.entries()).map(([name, data]) => ({
       department: name,
       employees: data.count,
-      avgPerformance: Math.round(data.avgPerformance)
+      avgPerformance: data.count > 0 ? Math.round(data.totalPerf / data.count) : 0
     }));
   };
   
@@ -303,7 +325,6 @@ const Reports = () => {
   
   const handleExport = async () => {
     try {
-      // For salary reports, check permission first
       if (reportType === 'salary' && !isAdmin) {
         setError('Salary reports are only available for administrators');
         setTimeout(() => setError(null), 3000);
@@ -347,7 +368,8 @@ const Reports = () => {
   ];
   
   const accessibleReportTypes = reportTypes.filter(type => 
-    type.roles.includes(user?.role) || (user?.role === 'employee' && type.id === 'performance' || type.id === 'attendance')
+    type.roles.includes(user?.role) || 
+    (user?.role === 'employee' && (type.id === 'performance' || type.id === 'attendance'))
   );
   
   const dateRanges = [
@@ -435,6 +457,23 @@ const Reports = () => {
         </div>
       </FadeIn>
       
+      {/* Permission Warnings */}
+      {permissionWarnings.length > 0 && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <FiAlertCircle className="text-yellow-600 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-yellow-800">Limited Data Available</p>
+              <ul className="text-xs text-yellow-700 mt-1">
+                {permissionWarnings.map((warning, idx) => (
+                  <li key={idx}>• {warning.message}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Report Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-soft border border-secondary-200 p-4">
@@ -489,8 +528,8 @@ const Reports = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-secondary-500 mb-1">Total Employees</p>
-                  <p className="text-2xl font-bold text-secondary-900">{stats.totalEmployees}</p>
-                  <p className="text-xs text-success-600 mt-1">+{stats.newHires} new hires</p>
+                  <p className="text-2xl font-bold text-secondary-900">{stats.totalEmployees || 0}</p>
+                  <p className="text-xs text-success-600 mt-1">+{stats.newHires || 0} new hires</p>
                 </div>
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                   <FiUsers className="text-primary-500" size={20} />
@@ -502,9 +541,9 @@ const Reports = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-secondary-500 mb-1">Avg Performance</p>
-                  <p className="text-2xl font-bold text-secondary-900">{stats.avgPerformance}%</p>
-                  <p className={`text-xs mt-1 ${stats.performanceTrend >= 0 ? 'text-success-600' : 'text-red-600'}`}>
-                    {stats.performanceTrend >= 0 ? '↑' : '↓'} {Math.abs(stats.performanceTrend)}% from last month
+                  <p className="text-2xl font-bold text-secondary-900">{Math.round(stats.avgPerformance || 0)}%</p>
+                  <p className={`text-xs mt-1 ${(stats.performanceTrend || 0) >= 0 ? 'text-success-600' : 'text-red-600'}`}>
+                    {(stats.performanceTrend || 0) >= 0 ? '↑' : '↓'} {Math.abs(stats.performanceTrend || 0)}% from last month
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -517,9 +556,9 @@ const Reports = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-secondary-500 mb-1">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-secondary-900">{stats.attendanceRate}%</p>
-                  <p className={`text-xs mt-1 ${stats.attendanceTrend >= 0 ? 'text-success-600' : 'text-red-600'}`}>
-                    {stats.attendanceTrend >= 0 ? '↑' : '↓'} {Math.abs(stats.attendanceTrend)}% from last month
+                  <p className="text-2xl font-bold text-secondary-900">{Math.round(stats.attendanceRate || 0)}%</p>
+                  <p className={`text-xs mt-1 ${(stats.attendanceTrend || 0) >= 0 ? 'text-success-600' : 'text-red-600'}`}>
+                    {(stats.attendanceTrend || 0) >= 0 ? '↑' : '↓'} {Math.abs(stats.attendanceTrend || 0)}% from last month
                   </p>
                 </div>
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -533,9 +572,9 @@ const Reports = () => {
                 <div>
                   <p className="text-sm text-secondary-500 mb-1">Avg Salary</p>
                   <p className="text-2xl font-bold text-secondary-900">
-                    {isAdmin ? `$${(stats.avgSalary / 1000).toFixed(0)}k` : '***'}
+                    {isAdmin ? `$${Math.round((stats.avgSalary || 0) / 1000)}k` : '***'}
                   </p>
-                  <p className="text-xs text-secondary-500 mt-1">{stats.departments} departments</p>
+                  <p className="text-xs text-secondary-500 mt-1">{stats.departments || 0} departments</p>
                   {!isAdmin && (
                     <p className="text-xs text-secondary-400 mt-0.5">Restricted to admin</p>
                   )}
@@ -573,7 +612,7 @@ const Reports = () => {
                   View Performance Report Instead
                 </Button>
               </div>
-            ) : getChartData().length > 0 ? (
+            ) : getChartData() && getChartData().length > 0 ? (
               <Chart
                 type={getChartType()}
                 data={getChartData()}

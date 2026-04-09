@@ -1,24 +1,36 @@
-
 import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import { FiSave, FiX, FiCamera } from "react-icons/fi";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import { useAuthStore } from "../store/authStore";
+import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../context/ToastContext";
 import { FadeIn, SlideIn } from "../components/animations";
 import api from "../services/api";
+
 const Profile = () => {
   const assetBaseRaw =
     import.meta.env.VITE_ASSET_URL || import.meta.env.VITE_API_URL || "";
   const assetBase = assetBaseRaw
     .replace(/\/api\/v1\/?$/i, "")
     .replace(/\/+$/i, "");
+  
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const isLoading = useAuthStore((state) => state.isLoading);
   const checkAuth = useAuthStore((state) => state.checkAuth);
 
   const { success: showSuccess, error: showError } = useToast();
+
+  const { userId } = useParams();
+  const { user: currentUser } = useAuth();
+  
+  const isOwnProfile = !userId || userId === currentUser?.id;
+  
+  // For displaying the profile (either current user or fetched user)
+  const [displayUser, setDisplayUser] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [uploadingAvatar, setUploadingAvatar] = useState("");
   const fileInputRef = useRef(null);
@@ -33,35 +45,59 @@ const Profile = () => {
     bio: "",
   });
 
+  // Fetch user profile when viewing someone else's profile
   useEffect(() => {
-    if (user) {
-      const employeeData = user.employeeData || {};
+    const fetchUserProfile = async () => {
+      if (isOwnProfile) {
+        setDisplayUser(currentUser);
+      } else if (userId) {
+        setLoading(true);
+        try {
+          const response = await api.get(`/users/${userId}`);
+          setDisplayUser(response.data.data);
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+          showError('Failed to load user profile');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, [userId, currentUser, isOwnProfile]);
+
+  // Update form data when displayUser changes
+  useEffect(() => {
+    if (displayUser) {
+      const employeeData = displayUser.employeeData || {};
       const employmentDetails = employeeData.employmentDetails || {};
       const personalInfo = employeeData.personalInfo || {};
-      const profile = user.profile || {};
+      const profile = displayUser.profile || {};
 
       const location = employmentDetails.workLocation || profile.location || "";
-
       const bio = personalInfo.bio || profile.bio || "";
 
       setFormData({
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-        email: user.email || "",
+        email: displayUser.email || "",
         phone: profile.phone || "",
-        department:
-          employmentDetails.department ||
-          user.employeeDetails?.department ||
-          "",
-        position:
-          employmentDetails.position || user.employeeDetails?.position || "",
+        department: employmentDetails.department || displayUser.employeeDetails?.department || "",
+        position: employmentDetails.position || displayUser.employeeDetails?.position || "",
         location: location,
         bio: bio,
       });
     }
-  }, [user]);
+  }, [displayUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Only allow editing own profile
+    if (!isOwnProfile) {
+      showError("You cannot edit another user's profile");
+      return;
+    }
 
     const nameParts = formData.name.trim().split(" ").filter(Boolean);
     const firstName = nameParts[0] || "";
@@ -69,7 +105,6 @@ const Profile = () => {
 
     const payload = {};
 
-    // Add profile data
     const profile = {};
     if (firstName) profile.firstName = firstName;
     if (lastName) profile.lastName = lastName;
@@ -77,7 +112,6 @@ const Profile = () => {
     if (formData.bio) profile.bio = formData.bio;
     if (Object.keys(profile).length > 0) payload.profile = profile;
 
-    // Add employee details
     const employeeDetails = {};
     if (formData.department) employeeDetails.department = formData.department;
     if (formData.position) employeeDetails.position = formData.position;
@@ -85,13 +119,11 @@ const Profile = () => {
     if (Object.keys(employeeDetails).length > 0)
       payload.employeeDetails = employeeDetails;
 
-    // Add personal info (bio)
     if (formData.bio) {
       payload.personalInfo = { bio: formData.bio };
     }
 
-    // Add email if changed
-    if (formData.email !== user?.email && formData.email) {
+    if (formData.email !== displayUser?.email && formData.email) {
       payload.email = formData.email;
     }
 
@@ -105,8 +137,11 @@ const Profile = () => {
     if (result.success) {
       showSuccess("Profile updated successfully");
       setIsEditing(false);
-      // Refresh user data from server
       await checkAuth();
+      // Refresh displayed user
+      if (isOwnProfile) {
+        setDisplayUser(currentUser);
+      }
     } else {
       showError(result.error);
     }
@@ -122,8 +157,13 @@ const Profile = () => {
       .slice(0, 2);
   };
 
-  // for avator handling
   const handleAvatarUpload = async (event) => {
+    // Only allow avatar upload for own profile
+    if (!isOwnProfile) {
+      showError("You cannot change another user's avatar");
+      return;
+    }
+    
     const file = event.target.files[0];
     if (!file) return;
 
@@ -132,7 +172,7 @@ const Profile = () => {
     formData.append("avatar", file);
 
     try {
-      const response = await api.post("/auth/upload-avatar",formData , {
+      const response = await api.post("/auth/upload-avatar", formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (response.data.success) {
@@ -146,38 +186,53 @@ const Profile = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
+  if (!displayUser) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-rose-500">User not found</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <FadeIn>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900">
-              My Profile
+              {isOwnProfile ? "My Profile" : `${displayUser.profile?.firstName || "User"}'s Profile`}
             </h1>
             <p className="text-secondary-600 mt-1">
-              Manage your personal information
+              {isOwnProfile ? "Manage your personal information" : "View user information"}
             </p>
           </div>
 
-          {!isEditing ? (
+          {isOwnProfile && !isEditing ? (
             <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-          ) : (
+          ) : isOwnProfile && isEditing ? (
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setIsEditing(false);
                   // Reset form data from current user
-                  if (user) {
-                    const employeeData = user.employeeData || {};
-                    const employmentDetails =
-                      employeeData.employmentDetails || {};
+                  if (displayUser) {
+                    const employeeData = displayUser.employeeData || {};
+                    const employmentDetails = employeeData.employmentDetails || {};
                     const personalInfo = employeeData.personalInfo || {};
-                    const profile = user.profile || {};
+                    const profile = displayUser.profile || {};
 
                     setFormData({
                       name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-                      email: user.email || "",
+                      email: displayUser.email || "",
                       phone: profile.phone || "",
                       department: employmentDetails.department || "",
                       position: employmentDetails.position || "",
@@ -199,51 +254,53 @@ const Profile = () => {
                 Save Changes
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </FadeIn>
 
       <SlideIn direction="up">
         <div className="bg-white rounded-xl shadow-soft border border-secondary-200 overflow-hidden">
-          <div className="relative h-20 bg-linear-to-r from-[#0f729c] to-[#003b54]">
+          <div className="relative h-20 bg-gradient-to-r bg-linear-to-r from-[#0f729c] to-[#003b54]">
             <div className="absolute -bottom-10 left-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-xl bg-white  shadow-md">
-                  {user?.profile?.avatar &&
-                  user.profile.avatar !== "avatar.png" ? (
+                <div className="w-24 h-24 rounded-xl bg-white shadow-md">
+                  {displayUser?.profile?.avatar && displayUser.profile.avatar !== "avatar.png" ? (
                     <img
-                      src={`${assetBase}/uploads/avatars/${user.profile.avatar}`}
+                      src={`${assetBase}/uploads/avatars/${displayUser.profile.avatar}`}
                       className="w-full h-full rounded-lg object-cover"
                       alt="avatar"
                     />
                   ) : (
-                    <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                    <div className="w-full h-full rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
                       <span className="text-white text-2xl font-bold">
-                        {getInitials(formData.name || "U")}
+                        {getInitials(formData.name || displayUser.profile?.firstName || "U")}
                       </span>
                     </div>
                   )}
                 </div>
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  disabled={uploadingAvatar}
-                  className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md hover:bg-secondary-50"
-                >
-                  {uploadingAvatar ? (
-                    <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <FiCamera size={14} className="text-primary-600" />
-                  )}
-                </button>
+                {isOwnProfile && (
+                  <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      disabled={uploadingAvatar}
+                      className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md hover:bg-secondary-50"
+                    >
+                      {uploadingAvatar ? (
+                        <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <FiCamera size={24} className="text-amber-600 p-1" />
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -257,7 +314,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={!isEditing || !isOwnProfile}
                   required
                 />
 
@@ -268,7 +325,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={!isEditing || !isOwnProfile}
                   required
                 />
 
@@ -278,7 +335,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={!isEditing || !isOwnProfile}
                 />
 
                 <Input
@@ -287,7 +344,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, department: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={true} // Department can't be edited by user
                 />
 
                 <Input
@@ -296,7 +353,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, position: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={true} // Position can't be edited by user
                 />
 
                 <Input
@@ -305,7 +362,7 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, location: e.target.value })
                   }
-                  disabled={!isEditing}
+                  disabled={!isEditing || !isOwnProfile}
                 />
               </div>
 
@@ -318,9 +375,9 @@ const Profile = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, bio: e.target.value })
                   }
-                  disabled={!isEditing}
-                  rows={4}
-                  className="w-full px-4 py-2.5 rounded-lg border border-secondary-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-secondary-50"
+                  disabled={!isEditing || !isOwnProfile}
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-lg border border-secondary-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:bg-secondary-50 text-gray-800 "
                   placeholder="Tell us about yourself..."
                 />
               </div>

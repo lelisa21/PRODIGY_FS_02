@@ -9,7 +9,7 @@ import EmployeeTable from '../components/employee/EmployeeTable';
 import EmployeeForm from '../components/employee/EmployeeForm';
 import { useEmployeeContext } from '../context/EmployeeContext';
 import { useToast } from '../context/ToastContext';
-import { FadeIn, SlideIn, StaggerChildren } from '../components/animations';
+import { FadeIn, SlideIn } from '../components/animations';
 import { exportToCSV, importFromCSV, importFromExcel } from '../utils/exportHelpers';
 import { useAuthStore } from '../store/authStore';
 

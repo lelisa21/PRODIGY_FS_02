@@ -147,7 +147,6 @@ class AuthService {
       targetName: `${user.profile.firstName} ${user.profile.lastName}`,
       targetId: user._id
     },
-    req,
     status: 'SUCCESS'
   });
 

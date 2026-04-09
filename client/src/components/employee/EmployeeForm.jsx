@@ -98,9 +98,9 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
   ];
   
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
       {/* Tabs */}
-      <div className="border-b border-secondary-200">
+      <div className="border-b border-secondary-200 w-full">
         <nav className="flex gap-4">
           {tabs.map((tab) => (
             <button
@@ -117,8 +117,9 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500"
+                  className="absolute bottom-0 max-w-5xl left-0 right-0 h-0.5 bg-primary-500"
                   transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                  
                 />
               )}
             </button>
@@ -127,12 +128,12 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
       </div>
       
       {/* Form Fields */}
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         {activeTab === 'basic' && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-4"
+            className="space-y-4 max-w-5xl"
           >
             <Input
               label="Full Name"
@@ -156,7 +157,7 @@ const EmployeeForm = ({ employee, onSuccess, onCancel }) => {
               
               <Input
                 label="Phone Number"
-                placeholder="+25194 567 8900"
+                placeholder="+25191 234 5600"
                 icon={<FiPhone />}
                 error={errors.phone?.message}
                 {...register('phone')}

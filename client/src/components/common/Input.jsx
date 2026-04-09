@@ -22,7 +22,7 @@ const Input = ({
   return (
     <div className={clsx(fullWidth ? 'w-full' : '', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label className="block text-md font-medium text-gray-500 dark:text-gray-500 mb-1.5">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -30,7 +30,7 @@ const Input = ({
 
       <div className="relative">
         {icon && iconPosition === 'left' && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none">
             {icon}
           </div>
         )}
@@ -38,11 +38,14 @@ const Input = ({
         <input
           type={inputType}
           className={clsx(
-            'block w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base',
-            'focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200',
-            'hover:border-gray-400 transition-all',
+            'block w-full rounded-md border border-amber-400 bg-white dark:bg-gray-900',
+            'border-gray-100 dark:border-gray-700',
+            'text-gray-900 dark:text-white',
+            'px-4 py-3 text-base',
+            'focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-500/30',
+            'hover:border-gray-400 dark:hover:border-gray-100 transition-all duration-200',
             icon && iconPosition === 'left' && 'pl-9',
-            (icon && iconPosition === 'right') || type === 'password' ? 'pr-11' : ''
+            ((icon && iconPosition === 'right') || type === 'password') && 'pr-11'
           )}
           {...props}
         />

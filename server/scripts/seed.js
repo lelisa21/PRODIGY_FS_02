@@ -311,8 +311,7 @@ async function seedDatabase() {
     }
     console.log(`✅ Created ${employeeRecords.length} employee records`);
 
-    // ==================== CREATE ACTIVITY LOGS ====================
-    console.log('\n📝 Creating activity logs...');
+    
     
     const actions = ['CREATE', 'UPDATE', 'DELETE', 'VIEW', 'LOGIN', 'LOGOUT'];
     const resources = ['EMPLOYEE', 'USER', 'DEPARTMENT', 'REPORT', 'SETTINGS'];
@@ -335,8 +334,7 @@ async function seedDatabase() {
     }
     console.log(`✅ Created 200 activity logs`);
 
-    // ==================== CREATE MESSAGES ====================
-    console.log('\n📝 Creating messages...');
+   
     
     const messageTexts = [
       'Selam! Welcome to the team!',
@@ -361,37 +359,6 @@ async function seedDatabase() {
       });
     }
     console.log(`✅ Created 100 messages`);
-
-    // ==================== SUMMARY ====================
-    console.log('\n' + '='.repeat(60));
-    console.log('🎉 ETHIOPIAN EMS DATABASE SEEDED SUCCESSFULLY!');
-    console.log('='.repeat(60));
-    console.log(`\n📊 Total: ${allEmployees.length} users`);
-    console.log(`   - Admin: 1`);
-    console.log(`   - Managers: ${managers.length}`);
-    console.log(`   - Employees: ${employees.length}`);
-    
-    console.log('\n🔐 Login Credentials:');
-    console.log('┌─────────────────────────────────────────────────┐');
-    console.log('│ Admin:                                          │');
-    console.log('│   Email: admin@ethioems.com                    │');
-    console.log('│   Password: Admin123!                          │');
-    console.log('├─────────────────────────────────────────────────┤');
-    console.log('│ Manager Example:                               │');
-    console.log(`│   Email: engineering.manager@ethioems.com      │`);
-    console.log('│   Password: Manager123!                        │');
-    console.log('├─────────────────────────────────────────────────┤');
-    console.log('│ Employee Example:                              │');
-    console.log(`│   Email: employee1@ethioems.com                │`);
-    console.log('│   Password: Employee1!23                       │');
-    console.log('└─────────────────────────────────────────────────┘');
-    
-    console.log('\n📍 Ethiopian Locations Configured:');
-    console.log(`   Cities: ${ETHIOPIAN_CITIES.join(', ')}`);
-    console.log(`   Banks: Commercial Bank of Ethiopia, Dashen Bank, etc.`);
-    console.log(`   Phone: +251 format`);
-    
-    console.log('\n✨ Ethiopian EMS is ready!');
 
   } catch (error) {
     console.error('\n❌ Seeding error:', error);

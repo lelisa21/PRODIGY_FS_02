@@ -57,7 +57,7 @@ const Modal = ({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={clsx(
-                'relative bg-white rounded-2xl shadow-xl w-full',
+                'relative bg-white rounded-2xl shadow-xl max-w-5xl',
                 sizes[size],
                 className
               )}

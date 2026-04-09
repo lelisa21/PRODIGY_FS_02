@@ -170,6 +170,7 @@ function App() {
                       } />
                       <Route path="messages" element={<Messages />} />
                       <Route path="profile" element={<Profile />} />
+                      <Route path="profile/:userId" element={<Profile /> } />
                       <Route path="settings" element={<Settings />} />
                       <Route path="reports" element={
                         <RoleRoute roles={['admin', 'manager']}>
