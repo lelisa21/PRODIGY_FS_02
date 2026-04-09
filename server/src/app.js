@@ -56,7 +56,6 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
-    console.log(`Rate limit hit by IP: ${req.ip}`); 
     res.status(options.statusCode).send(options.message);
   },
 });

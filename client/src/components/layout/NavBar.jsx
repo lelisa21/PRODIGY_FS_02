@@ -242,7 +242,6 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  console.log("Searching for:", searchQuery);
                 }
               }}
               className="w-full pl-16 pr-6 py-6 text-lg bg-transparent outline-none border-b border-gray-100 placeholder:text-gray-400 focus:border-teal-500 transition-colors"

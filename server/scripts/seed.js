@@ -119,7 +119,7 @@ async function generateEmployeeId() {
 
 async function seedDatabase() {
   try {
-    console.log('🌍 Starting Ethiopian EMS Database Seeding...');
+    console.log('🌍 Starting GreatTeam EMS Database Seeding...');
     
     await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB');

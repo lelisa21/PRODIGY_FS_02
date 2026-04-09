@@ -99,9 +99,7 @@ updateProfile: async (data) => {
   set({ isLoading: true, error: null });
   try {
     const response = await api.patch('/auth/profile', data);
-    
-    console.log('Update profile response:', response.data);
-    
+        
     const updatedUser = response.data?.data || response.data;
     
     if (!updatedUser) {
@@ -122,9 +120,7 @@ updateProfile: async (data) => {
         ...updatedUser?.employeeData
       }
     };
-    
-    console.log('Merged user:', mergedUser);
-    
+        
     set({
       user: mergedUser,
       isLoading: false,

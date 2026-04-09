@@ -48,7 +48,6 @@ const Messages = () => {
     
     // Handle new message event
     const handleNewMessage = (msg) => {
-      console.log('New message received:', msg);
       setMessages((prev) => {
         // Avoid duplicates
         if (prev.some((item) => item._id === msg._id || item.id === msg.id)) {

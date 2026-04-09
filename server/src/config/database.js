@@ -20,7 +20,6 @@ const connectDB = async () =>{
       })
 
       logger.info(`MONGODB Connected: ${conn.connection.host}`)
-        console.log("database connected")
 
         // monitoring
         mongoose.connection.on("connected" , () => {

@@ -3,15 +3,27 @@ import logger from '../utils/logger.js';
 
 class EmailService {
   constructor() {
+    const host = process.env.EMAIL_HOST || '127.0.0.1';
+    const port = Number(process.env.EMAIL_PORT || 1025);
+    const secure =
+      process.env.EMAIL_SECURE === 'true' ||
+      (process.env.EMAIL_SECURE === undefined && port === 465);
+
+    const auth =
+      process.env.EMAIL_USER && process.env.EMAIL_PASS
+        ? { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+        : undefined;
+
     this.transporter = nodemailer.createTransport({
-      host: '127.0.0.1',
-      port: 1025, 
-      secure: false
+      host,
+      port,
+      secure,
+      ...(auth ? { auth } : {}),
     });
   }
 
   async sendWelcomeEmail(email, name, tempPassword) {
-    const subject = 'Welcome to EMS';
+    const subject = 'Welcome to GreatTeam!';
     const passwordBlock = tempPassword
       ? `<p>Your temporary password is: <strong>${tempPassword}</strong></p>
          <p>Please log in and change it immediately.</p>`
@@ -29,7 +41,12 @@ class EmailService {
   async sendPasswordResetEmail(email, nameOrToken, maybeToken) {
     const name = maybeToken ? nameOrToken : null;
     const resetToken = maybeToken || nameOrToken;
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.PUBLIC_URL ||
+      'http://localhost:5173';
+    const baseUrl = frontendUrl.replace(/\/+$/, '');
+    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     const subject = 'Password Reset Request';
     const html = `
       <h1>Password Reset</h1>
@@ -59,7 +76,7 @@ class EmailService {
   async sendEmail(to, subject, html) {
     try {
       const mailOptions = {
-        from: `"EMS System" <${process.env.EMAIL_USER}>`,
+        from: `"GreatTeam EMS System" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to,
         subject,
         html
