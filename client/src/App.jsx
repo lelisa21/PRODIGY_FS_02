@@ -38,57 +38,6 @@ const queryClient = new QueryClient({
   },
 });
 
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthContext();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
-      </div>
-    );
-  }
-  
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
-
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthContext();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
-      </div>
-    );
-  }
-  
-  return !isAuthenticated ? children : <Navigate to="/app/dashboard" replace />;
-};
-
-const RoleRoute = ({ roles = [], children }) => {
-  const { isAuthenticated, isLoading, user } = useAuthContext();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const role = user?.role || 'employee';
-  if (roles.length > 0 && !roles.includes(role)) {
-    return <NotAuthorized />;
-  }
-
-  return children;
-};
-
 function App() {
   return (
     <BrowserRouter>
@@ -98,89 +47,7 @@ function App() {
             <ToastProvider>
               <AuthProvider>
                 <EmployeeProvider>
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Landing />} />
-                    
-                    <Route path="/login" element={
-                      <PublicRoute>
-                        <Login />
-                      </PublicRoute>
-                    } />
-                    
-                    <Route path="/register" element={
-                      <PublicRoute>
-                        <Register />
-                      </PublicRoute>
-                    } />
-
-                    <Route path="/forgot-password" element={
-                      <PublicRoute>
-                        <ForgotPassword />
-                      </PublicRoute>
-                    } />
-
-                    <Route path="/reset-password/:token" element={
-                      <PublicRoute>
-                        <ResetPassword />
-                      </PublicRoute>
-                    } />
-
-                    {/* Protected routes with Layout */}
-                    <Route
-                      path="/app"
-                      element={
-                        <PrivateRoute>
-                          <Layout />
-                        </PrivateRoute>
-                      }
-                    >
-                      <Route index element={<Navigate to="/app/dashboard" replace />} />
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="employees" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Employees />
-                        </RoleRoute>
-                      } />
-                      <Route path="employees/:id" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <EmployeeDetails />
-                        </RoleRoute>
-                      } />
-                      <Route path="departments" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Departments />
-                        </RoleRoute>
-                      } />
-                      <Route path="attendance" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Attendance />
-                        </RoleRoute>
-                      } />
-                      <Route path="performance" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Performance />
-                        </RoleRoute>
-                      } />
-                      <Route path="documents" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Documents />
-                        </RoleRoute>
-                      } />
-                      <Route path="messages" element={<Messages />} />
-                      <Route path="profile" element={<Profile />} />
-                      <Route path="profile/:userId" element={<Profile /> } />
-                      <Route path="settings" element={<Settings />} />
-                      <Route path="reports" element={
-                        <RoleRoute roles={['admin', 'manager']}>
-                          <Reports />
-                        </RoleRoute>
-                      } />
-                    </Route>
-
-                    {/* 404 */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <AppRoutes />
                 </EmployeeProvider>
               </AuthProvider>
             </ToastProvider>
@@ -188,6 +55,91 @@ function App() {
         </QueryClientProvider>
       </HelmetProvider>
     </BrowserRouter>
+  );
+}
+
+// Separate component for routes
+function AppRoutes() {
+  const { isAuthenticated, isLoading, user } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Landing />} />
+      
+      <Route 
+        path="/login" 
+        element={!isAuthenticated ? <Login /> : <Navigate to="/app/dashboard" replace />} 
+      />
+      
+      <Route 
+        path="/register" 
+        element={!isAuthenticated ? <Register /> : <Navigate to="/app/dashboard" replace />} 
+      />
+
+      <Route 
+        path="/forgot-password" 
+        element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/app/dashboard" replace />} 
+      />
+
+      <Route 
+        path="/reset-password/:token" 
+        element={!isAuthenticated ? <ResetPassword /> : <Navigate to="/app/dashboard" replace />} 
+      />
+
+      {/* Protected routes with Layout */}
+      <Route
+        path="/app"
+        element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}
+      >
+        <Route index element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        
+        <Route path="employees" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Employees /> : <NotAuthorized />
+        } />
+        
+        <Route path="employees/:id" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <EmployeeDetails /> : <NotAuthorized />
+        } />
+        
+        <Route path="departments" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Departments /> : <NotAuthorized />
+        } />
+        
+        <Route path="attendance" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Attendance /> : <NotAuthorized />
+        } />
+        
+        <Route path="performance" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Performance /> : <NotAuthorized />
+        } />
+        
+        <Route path="documents" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Documents /> : <NotAuthorized />
+        } />
+        
+        <Route path="messages" element={<Messages />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="profile/:userId" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
+        
+        <Route path="reports" element={
+          user?.role === 'admin' || user?.role === 'manager' ? <Reports /> : <NotAuthorized />
+        } />
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

@@ -92,14 +92,14 @@ const NotFound = () => {
               404
             </motion.div>
             {/* Glitch overlay effect */}
-            {/* <motion.div
+            <motion.div
               className="absolute inset-0 text-8xl sm:text-9xl font-black text-blue-500/20 blur-sm"
               style={{ top: 2, left: 2 }}
               animate={{ opacity: [0.2, 0.4, 0.2] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               404
-            </motion.div> */}
+            </motion.div>
           </motion.div>
 
           {/* OOPS message with bounce animation */}
