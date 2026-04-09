@@ -190,7 +190,7 @@ class EmployeeController {
     await employee.save();
 
     // Update cache
-    await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+    await redisClient.set(`employee:${id}`, 3600, JSON.stringify(employee));
 
     res.status(200).json({
       success: true,
@@ -267,7 +267,7 @@ updateEmployeeSkills = catchAsync(async (req, res) => {
   await employee.save();
 
   // Update cache
-  await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+  await redisClient.set(`employee:${id}`, 3600, JSON.stringify(employee));
 
   res.status(200).json({
     success: true,
@@ -288,7 +288,7 @@ deleteDocument = catchAsync(async (req, res) => {
 
   const [deletedDoc] = employee.documents.splice(docIndex, 1);
   await employee.save();
-  await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+  await redisClient.set(`employee:${id}`, 3600, JSON.stringify(employee));
 
   res.status(200).json({
     success: true,

@@ -52,17 +52,9 @@ class AuthService {
     user.refreshTokens = [refreshToken];
     await user.save();
 
-    await redisClient.setEx(
-      `user:${user._id}`,
-      3600,
-      JSON.stringify(user.toJSON()),
-    );
+    await redisClient.set(`user:${user._id}`, user.toJSON(), 3600);
 
-    await redisClient.setEx(
-      `employee:${user._id}`,
-      3600,
-      JSON.stringify(employee.toJSON()),
-    );
+    await redisClient.set(`employee:${user._id}`, employee.toJSON(), 3600);
 
     await emailService.sendWelcomeEmail(user.email, user.profile.firstName);
 
@@ -71,12 +63,31 @@ class AuthService {
       role: user.role,
       employeeId,
     });
-
+    this.sendWelcomeEmailSafely(user.email, user.profile.firstName);
     return {
       user: user.toJSON(),
       employee: employee.toJSON(),
       tokens: { accessToken, refreshToken },
     };
+  }
+
+  async sendWelcomeEmailSafely(email, name) {
+    try {
+      const result = await emailService.sendWelcomeEmail(email, name);
+      if (result.success) {
+        logger.info(`Welcome email sent to ${email}`);
+      } else {
+        logger.warn(
+          `Failed to send welcome email to ${email}: ${result.error}`,
+        );
+      }
+    } catch (error) {
+      // Catch any unexpected errors
+      logger.error(
+        `Unexpected error sending email to ${email}:`,
+        error.message,
+      );
+    }
   }
 
   async login(email, password, ipAddress, rememberMe = true) {
@@ -124,31 +135,23 @@ class AuthService {
     // Get employee data
     const employee = await Employee.findOne({ user: user._id });
 
-    await redisClient.setEx(
-      `user:${user._id}`,
-      3600,
-      JSON.stringify(user.toJSON()),
-    );
+    await redisClient.set(`user:${user._id}`, user.toJSON(), 3600);
 
     if (employee) {
-      await redisClient.setEx(
-        `employee:${user._id}`,
-        3600,
-        JSON.stringify(employee.toJSON()),
-      );
+      await redisClient.set(`employee:${user._id}`, employee.toJSON(), 3600);
     }
-     await activityLogService.log({
-    userId: user._id,
-    action: 'LOGIN',
-    resource: 'USER',
-    resourceId: user._id,
-    details: {
-      description: `${user.profile.firstName} ${user.profile.lastName} logged in`,
-      targetName: `${user.profile.firstName} ${user.profile.lastName}`,
-      targetId: user._id
-    },
-    status: 'SUCCESS'
-  });
+    await activityLogService.log({
+      userId: user._id,
+      action: "LOGIN",
+      resource: "USER",
+      resourceId: user._id,
+      details: {
+        description: `${user.profile.firstName} ${user.profile.lastName} logged in`,
+        targetName: `${user.profile.firstName} ${user.profile.lastName}`,
+        targetId: user._id,
+      },
+      status: "SUCCESS",
+    });
 
     logger.info(`User logged in successfully: ${user.email}`, {
       userId: user._id,
@@ -271,17 +274,9 @@ class AuthService {
     await redisClient.del(`user:${userId}`);
     await redisClient.del(`employee:${userId}`);
 
-    await redisClient.setEx(
-      `user:${userId}`,
-      3600,
-      JSON.stringify(user.toJSON()),
-    );
+    await redisClient.set(`user:${user._id}`, user.toJSON(), 3600);
 
-    await redisClient.setEx(
-      `employee:${userId}`,
-      3600,
-      JSON.stringify(employee.toJSON()),
-    );
+    await redisClient.set(`employee:${userId}`, employee.toJSON(), 3600);
 
     logger.info(`Caches updated for user: ${userId}`);
 
@@ -362,129 +357,128 @@ class AuthService {
     }
   }
 
-async changePassword(userId, currentPassword, newPassword) {
-  const user = await User.findById(userId).select("+password");
-  if (!user) {
-    throw new AppError("User not found", 404);
-  }
-  
-  const isPasswordValid = await user.comparePassword(currentPassword);
-  if (!isPasswordValid) {
-    throw new AppError("Current password is incorrect", 401);
-  }
-  
-  user.password = newPassword;
-  user.refreshTokens = [];
-  user.passwordChangedAt = new Date();
-  await user.save();
-
-  await redisClient.del(`user:${userId}`);
-
-  logger.info(`User ${user.email} changed password at ${new Date().toISOString()}`);
-
-  await emailService.sendPasswordChangeNotification(
-    user.email,
-    user.profile.firstName,
-  );
-
-  return { success: true };
-}
-
-
-
-async refreshToken(refreshToken) {
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const rememberMe = Boolean(decoded?.rm);
-
-    const user = await User.findById(decoded.id).select("+refreshTokens");
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await User.findById(userId).select("+password");
     if (!user) {
       throw new AppError("User not found", 404);
     }
-    if (!user.refreshTokens || !user.refreshTokens.includes(refreshToken)) {
+
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      throw new AppError("Current password is incorrect", 401);
+    }
+
+    user.password = newPassword;
+    user.refreshTokens = [];
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    await redisClient.del(`user:${userId}`);
+
+    logger.info(
+      `User ${user.email} changed password at ${new Date().toISOString()}`,
+    );
+
+    await emailService.sendPasswordChangeNotification(
+      user.email,
+      user.profile.firstName,
+    );
+
+    return { success: true };
+  }
+
+  async refreshToken(refreshToken) {
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+      const rememberMe = Boolean(decoded?.rm);
+
+      const user = await User.findById(decoded.id).select("+refreshTokens");
+      if (!user) {
+        throw new AppError("User not found", 404);
+      }
+      if (!user.refreshTokens || !user.refreshTokens.includes(refreshToken)) {
+        throw new AppError("Invalid refresh token", 401);
+      }
+
+      const tokens = this.generateTokens(user, rememberMe);
+
+      user.refreshTokens = user.refreshTokens.filter(
+        (token) => token !== refreshToken,
+      );
+      user.refreshTokens.push(tokens.refreshToken);
+      if (user.refreshTokens.length > 5) {
+        user.refreshTokens = user.refreshTokens.slice(-5);
+      }
+      await user.save();
+
+      return { ...tokens, rememberMe };
+    } catch (error) {
       throw new AppError("Invalid refresh token", 401);
     }
-    
-    const tokens = this.generateTokens(user, rememberMe);
-    
-    user.refreshTokens = user.refreshTokens.filter(
-      (token) => token !== refreshToken,
-    );
-    user.refreshTokens.push(tokens.refreshToken);
-    if (user.refreshTokens.length > 5) {
-      user.refreshTokens = user.refreshTokens.slice(-5);
+  }
+
+  async logout(userId, refreshToken) {
+    const user = await User.findById(userId).select("+refreshTokens");
+    if (user && user.refreshTokens) {
+      user.refreshTokens = user.refreshTokens.filter(
+        (token) => token !== refreshToken,
+      );
+      await user.save();
     }
+    await redisClient.del(`user:${userId}`);
+    await redisClient.del(`employee:${userId}`);
+
+    logger.info(`User ${userId} logged out at ${new Date().toISOString()}`);
+  }
+
+  async forgotPassword(email) {
+    const user = await User.findOne({ email });
+    if (!user) return;
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    user.passwordResetToken = resetTokenHash;
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    return { ...tokens, rememberMe };
-  } catch (error) {
-    throw new AppError("Invalid refresh token", 401);
-  }
-}
-
-async logout(userId, refreshToken) {
-  const user = await User.findById(userId).select("+refreshTokens");
-  if (user && user.refreshTokens) {
-    user.refreshTokens = user.refreshTokens.filter(
-      (token) => token !== refreshToken,
+    await emailService.sendPasswordResetEmail(
+      user.email,
+      user.profile.firstName,
+      resetToken,
     );
+
+    logger.info(`Password reset email requested to ${user.email}`);
+  }
+
+  async resetPassword(token, newPassword) {
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: resetTokenHash,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new AppError("Invalid or expired reset token", 400);
+    }
+
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.refreshTokens = [];
+    user.passwordChangedAt = new Date();
     await user.save();
+
+    await redisClient.del(`user:${user._id}`);
+
+    logger.info(`User ${user.email} reset their password`);
   }
-  await redisClient.del(`user:${userId}`);
-  await redisClient.del(`employee:${userId}`);
-
-  logger.info(`User ${userId} logged out at ${new Date().toISOString()}`);
-}
-
-async forgotPassword(email) {
-  const user = await User.findOne({ email });
-  if (!user) return;
-
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  const resetTokenHash = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-  user.passwordResetToken = resetTokenHash;
-  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-  await user.save();
-
-  await emailService.sendPasswordResetEmail(
-    user.email,
-    user.profile.firstName,
-    resetToken,
-  );
-
-  logger.info(`Password reset email requested to ${user.email}`);
-}
-
-async resetPassword(token, newPassword) {
-  const resetTokenHash = crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex");
-
-  const user = await User.findOne({
-    passwordResetToken: resetTokenHash,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    throw new AppError("Invalid or expired reset token", 400);
-  }
-
-  user.password = newPassword;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  user.refreshTokens = [];
-  user.passwordChangedAt = new Date();
-  await user.save();
-
-  await redisClient.del(`user:${user._id}`);
-
-  logger.info(`User ${user.email} reset their password`);
-}
-
 }
 
 export default new AuthService();

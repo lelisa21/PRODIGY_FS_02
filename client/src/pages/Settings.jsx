@@ -21,6 +21,7 @@ import {
   FiLogOut,
   FiVolume2,
   FiVolumeX,
+  FiAward,
 } from "react-icons/fi";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
@@ -95,6 +96,7 @@ const Settings = () => {
     { id: "privacy", label: "Privacy", icon: <FiLock /> },
     { id: "security", label: "Security", icon: <FiShield /> },
     { id: "language", label: "Language", icon: <FiGlobe /> },
+    {id:"others" ,label:"Others" , icon:<FiAward  />}
   ];
 
   const accentColors = [

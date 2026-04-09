@@ -106,11 +106,7 @@ class EmployeeService {
     }
 
     // Cache employee
-    await redisClient.setEx(
-      `employee:${employee._id}`,
-      3600,
-      JSON.stringify(employee),
-    );
+    await redisClient.set(`employee:${user._id}`,employee.toJSON(),3600);
 
     logger.info(`Employee created: ${employee.employmentDetails.employeeId}`);
 
@@ -141,7 +137,7 @@ class EmployeeService {
     }
 
     // Cache for 1 hour
-    await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+    await redisClient.set(`employee:${id}`, 3600, JSON.stringify(employee));
 
     return employee;
   }
@@ -244,7 +240,7 @@ class EmployeeService {
     }
 
     // Update cache
-    await redisClient.setEx(`employee:${id}`, 3600, JSON.stringify(employee));
+    await redisClient.set(`employee:${id}`, 3600, JSON.stringify(employee));
 
     if (
       updateData.employmentDetails?.department ||
