@@ -960,10 +960,10 @@ const Settings = () => {
 
             {/* Language Tab - Placeholder */}
             {activeTab === "language" && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6">
+              <div className="bg-gray-500 dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6">
                 <div className="text-center py-12">
                   <FiGlobe className="text-5xl text-neutral-400 mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                  <h2 className="text-xl font-semibold text-neutral-900 dark:text-gray-500 mb-2">
                     Language Settings
                   </h2>
                   <p className="text-neutral-500 dark:text-neutral-400">

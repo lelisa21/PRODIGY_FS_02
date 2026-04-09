@@ -35,6 +35,13 @@ app.use(
 
 app.use(compression());
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'active',
+    message: 'Employee Management Server is running',
+    environment: process.env.NODE_ENV
+  });
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());

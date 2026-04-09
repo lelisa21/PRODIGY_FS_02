@@ -11,14 +11,6 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-app.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'active',
-    message: 'Employee Management Server is running',
-    environment: process.env.NODE_ENV
-  });
-});
-
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
   logger.error("Uncaught Exception:", error);
