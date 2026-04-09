@@ -28,8 +28,6 @@ class RedisClient {
           return delay;
         },
         maxRetriesPerRequest: 3,
-        // CRITICAL: Redis Cloud requires TLS. This activates it if using rediss://
-        tls: redisUrl?.startsWith('rediss://') ? {} : undefined,
         connectTimeout: 15000,
         keepAlive: 30000,
       };
