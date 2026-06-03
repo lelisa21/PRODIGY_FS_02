@@ -16,9 +16,7 @@ const app = express();
 
 const isProduction = process.env.NODE_ENV === "production";
 const frontendUrl = process.env.FRONTEND_URL;
-const isLocalhost =
-  typeof frontendUrl === "string" && /localhost|127\.0\.0\.1/i.test(frontendUrl);
-const allowAllOrigins = !frontendUrl || (isProduction && isLocalhost);
+const allowAllOrigins = !isProduction && !frontendUrl;
 
 // Security middleware
 app.use(helmet({
@@ -67,6 +65,21 @@ const limiter = rateLimit({
   },
 });
 app.use('/api', limiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    message: 'Too many authentication attempts. Please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/demo-login', authLimiter);
+app.use('/api/v1/auth/forgot-password', authLimiter);
+
 app.use(requestLogger);
 
 app.use('/uploads', express.static('uploads'));

@@ -1,4 +1,3 @@
-// src/controllers/auth.controller.js
 import authService from '../services/auth.service.js';
 import User from '../models/User.model.js';
 import logger from '../utils/logger.js';
@@ -85,6 +84,35 @@ class AuthController {
         user: result.user,
         accessToken: result.tokens.accessToken
       }
+    });
+  });
+
+  demoLogin = catchAsync(async (req, res) => {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const result = await authService.demoLogin(ipAddress, true);
+
+    this.setRefreshTokenCookie(res, result.tokens.refreshToken, true);
+
+    logger.info(`Demo login issued: ${result.user.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Demo workspace ready',
+      data: {
+        user: {
+          ...result.user,
+          demo: {
+            isDemoAccount: true,
+            quickStart: [
+              'Open Dashboard for workforce analytics',
+              'Review Employees for advanced filtering and profiles',
+              'Check Reports and Activity for audit-ready workflows',
+              'Visit About Platform from the landing page for architecture context',
+            ],
+          },
+        },
+        accessToken: result.tokens.accessToken,
+      },
     });
   });
 

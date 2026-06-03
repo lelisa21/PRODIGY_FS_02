@@ -15,7 +15,7 @@ export const useAuthContext = () => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, login, logout, register, updateProfile, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, isLoading, login, demoLogin, logout, register, updateProfile, checkAuth } = useAuthStore();
   const { success: showSuccess, error: showError } = useToast();
 
   const handleLogin = useCallback(async (email, password, rememberMe = false) => {
@@ -44,6 +44,23 @@ export const AuthProvider = ({ children }) => {
       showError('Logout failed');
     }
   }, [logout, navigate, showSuccess, showError]);
+
+  const handleDemoLogin = useCallback(async () => {
+    try {
+      const result = await demoLogin();
+      if (result.success) {
+        showSuccess('Demo workspace loaded');
+        navigate('/app/dashboard?demo=1');
+        return { success: true };
+      }
+
+      showError(result.error || 'Demo login failed');
+      return { success: false, error: result.error };
+    } catch (error) {
+      showError('An unexpected error occurred');
+      return { success: false, error: error.message };
+    }
+  }, [demoLogin, navigate, showSuccess, showError]);
 
   const handleRegister = useCallback(async (userData) => {
     try {
@@ -87,10 +104,11 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isLoading,
     login: handleLogin,
+    demoLogin: handleDemoLogin,
     logout: handleLogout,
     register: handleRegister,
     updateProfile: handleUpdateProfile,
-  }), [user, isAuthenticated, isLoading, handleLogin, handleLogout, handleRegister, handleUpdateProfile]);
+  }), [user, isAuthenticated, isLoading, handleLogin, handleDemoLogin, handleLogout, handleRegister, handleUpdateProfile]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -44,6 +44,35 @@ export const useAuthStore = create(
         }
       },
 
+      demoLogin: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await api.post('/auth/demo-login');
+          const { user, accessToken } = response.data.data;
+
+          localStorage.setItem('accessToken', accessToken);
+          set({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Demo login error:', error.response?.data);
+          const errorMessage = error.response?.data?.message || 'Demo login failed';
+          set({
+            isLoading: false,
+            error: errorMessage,
+          });
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        }
+      },
+
       logout: async () => {
         set({ isLoading: true });
         try {

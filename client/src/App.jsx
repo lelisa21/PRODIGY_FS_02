@@ -8,6 +8,7 @@ import { EmployeeProvider } from './context/EmployeeContext';
 
 import Layout from './components/layout/Layout';
 import Landing from './pages/Landing'; 
+import AboutProject from './pages/AboutProject';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -74,6 +75,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
+      <Route path="/about-project" element={<AboutProject />} />
       
       <Route 
         path="/login" 

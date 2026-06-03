@@ -7,6 +7,7 @@ import emailService from "./email.service.js";
 import redisClient from "../utils/redisClient.js";
 import Employee from "../models/Employee.model.js";
 import activityLogService from "./activityLog.service.js";
+import ActivityLog from "../models/ActivityLog.model.js";
 class AuthService {
   async signup(userData) {
     const existingUser = await User.findOne({ email: userData.email });
@@ -169,6 +170,238 @@ class AuthService {
       user: userResponse,
       tokens: { accessToken, refreshToken, rememberMe: tokenRememberMe },
     };
+  }
+
+  async demoLogin(ipAddress, rememberMe = true) {
+    const demoUser = await this.ensurePlatformDemoData();
+    return this.login(demoUser.email, process.env.DEMO_USER_PASSWORD || "GreatTeamDemo123!", ipAddress, rememberMe);
+  }
+
+  async ensurePlatformDemoData() {
+    const demoEmail = process.env.DEMO_USER_EMAIL || "demo@greatteam.com";
+    const demoPassword = process.env.DEMO_USER_PASSWORD || "GreatTeamDemo123!";
+    const existingDemo = await User.findOne({ email: demoEmail });
+
+    if (existingDemo) {
+      const employeeCount = await Employee.countDocuments({
+        "employmentDetails.employeeId": /^DEMO-/,
+      });
+
+      if (employeeCount >= 8) {
+        return existingDemo;
+      }
+    }
+
+    const demoAdmin = existingDemo || await User.create({
+      email: demoEmail,
+      password: demoPassword,
+      role: "admin",
+      profile: {
+        firstName: "Demo",
+        lastName: "Demo",
+        phone: "+1 555 014 2026",
+        avatar: "avatar.png",
+        bio: "Demo admin account for exploring GreatTeam EMS workflows.",
+        location: "Remote",
+      },
+      employeeDetails: {
+        employeeId: "DEMO-ADMIN",
+        department: "People Operations",
+        position: "Demo Workspace Admin",
+        joinDate: new Date("2024-01-08"),
+        salary: 145000,
+      },
+      status: "active",
+      lastLogin: new Date(),
+    });
+
+    await Employee.findOneAndUpdate(
+      { user: demoAdmin._id },
+      {
+        user: demoAdmin._id,
+        employmentDetails: {
+          employeeId: "DEMO-ADMIN",
+          hireDate: new Date("2024-01-08"),
+          employmentType: "full-time",
+          department: "People Operations",
+          position: "Demo Workspace Admin",
+          workLocation: "Remote",
+          workEmail: demoEmail,
+          workPhone: "+1 555 014 2026",
+        },
+        personalInfo: {
+          nationality: "Demo",
+          address: {
+            city: "San Francisco",
+            state: "CA",
+            country: "United States",
+          },
+        },
+        compensation: {
+          salary: 145000,
+          payFrequency: "monthly",
+        },
+        skills: [
+          { name: "Product Evaluation", level: "expert", yearsOfExperience: 8 },
+          { name: "HR Analytics", level: "advanced", yearsOfExperience: 5 },
+        ],
+        attendance: {
+          totalLeaves: 24,
+          leavesTaken: 3,
+          lateDays: 0,
+          absentDays: 0,
+        },
+        performance: {
+          currentRating: 4.8,
+          lastReviewDate: new Date("2026-03-15"),
+          nextReviewDate: new Date("2026-09-15"),
+          reviews: [
+            {
+              date: new Date("2026-03-15"),
+              rating: 4.8,
+              comments: "Demo admin account prepared for platform exploration.",
+              reviewedBy: demoAdmin._id,
+            },
+          ],
+        },
+        status: "active",
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    const demoEmployees = [
+      ["Avery", "Chen", "Engineering", "Senior Full-Stack Engineer", 138000, 4.7, ["React", "Node.js", "MongoDB"]],
+      ["Maya", "Patel", "Engineering", "Frontend Engineer", 118000, 4.5, ["Accessibility", "React", "Design Systems"]],
+      ["Jordan", "Rivera", "Product", "Product Manager", 126000, 4.6, ["Roadmapping", "Analytics", "Stakeholder Management"]],
+      ["Samira", "Hassan", "People Operations", "HR Business Partner", 104000, 4.4, ["Employee Relations", "Onboarding", "Compliance"]],
+      ["Noah", "Williams", "Sales", "Enterprise Account Executive", 132000, 4.3, ["Pipeline Management", "Negotiation", "Forecasting"]],
+      ["Lina", "Okafor", "Finance", "Financial Analyst", 98000, 4.2, ["Forecasting", "Excel", "Reporting"]],
+      ["Ethan", "Brooks", "Security", "Security Engineer", 142000, 4.8, ["Audit Logging", "IAM", "Incident Response"]],
+      ["Sofia", "Martinez", "Customer Success", "Customer Success Manager", 96000, 4.1, ["Retention", "Customer Health", "Training"]],
+      ["Daniel", "Kim", "Operations", "Operations Lead", 110000, 4.3, ["Process Design", "Dashboards", "Vendor Management"]],
+      ["Grace", "Morgan", "Data", "People Analytics Lead", 130000, 4.7, ["SQL", "Workforce Planning", "Data Visualization"]],
+    ];
+
+    for (const [index, employee] of demoEmployees.entries()) {
+      const [firstName, lastName, department, position, salary, rating, skills] = employee;
+      const email = `demo.${firstName.toLowerCase()}.${lastName.toLowerCase()}@greatteam.com`;
+      const employeeId = `DEMO-${String(index + 1).padStart(3, "0")}`;
+
+      const user = await User.findOneAndUpdate(
+        { email },
+        {
+          email,
+          role: index < 3 ? "manager" : "employee",
+          profile: {
+            firstName,
+            lastName,
+            phone: `+1 555 010 ${String(index).padStart(2, "0")}`,
+            avatar: "avatar.png",
+            bio: `${position} in the demo workspace.`,
+            location: index % 2 === 0 ? "Remote" : "Hybrid",
+          },
+          employeeDetails: {
+            employeeId,
+            department,
+            position,
+            joinDate: new Date(2024, index % 12, 12),
+            salary,
+          },
+          status: index === 8 ? "inactive" : "active",
+          lastLogin: new Date(Date.now() - index * 86400000),
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+
+      if (!user.password) {
+        user.password = demoPassword;
+        await user.save();
+      }
+
+      await Employee.findOneAndUpdate(
+        { user: user._id },
+        {
+          user: user._id,
+          employmentDetails: {
+            employeeId,
+            hireDate: new Date(2024, index % 12, 12),
+            employmentType: index === 8 ? "contract" : "full-time",
+            department,
+            position,
+            workLocation: index % 2 === 0 ? "Remote" : "Hybrid",
+            workEmail: email,
+            workPhone: `+1 555 010 ${String(index).padStart(2, "0")}`,
+          },
+          compensation: {
+            salary,
+            payFrequency: "monthly",
+          },
+          skills: skills.map((name, skillIndex) => ({
+            name,
+            level: skillIndex === 0 ? "expert" : "advanced",
+            yearsOfExperience: 3 + skillIndex + index,
+          })),
+          attendance: {
+            totalLeaves: 24,
+            leavesTaken: (index % 6) + 2,
+            lateDays: index % 3,
+            absentDays: index % 2,
+          },
+          performance: {
+            currentRating: rating,
+            lastReviewDate: new Date("2026-03-15"),
+            nextReviewDate: new Date("2026-09-15"),
+            reviews: [
+              {
+                date: new Date("2025-09-15"),
+                rating: Math.max(3.8, rating - 0.2),
+                comments: "Strong delivery against role expectations.",
+                reviewedBy: demoAdmin._id,
+              },
+              {
+                date: new Date("2026-03-15"),
+                rating,
+                comments: "Clear growth, measurable impact, and reliable collaboration.",
+                reviewedBy: demoAdmin._id,
+              },
+            ],
+          },
+          status: index === 8 ? "inactive" : "active",
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+    }
+
+    const demoActivityCount = await ActivityLog.countDocuments({ resourceId: demoAdmin._id });
+    if (demoActivityCount < 8) {
+      const actions = [
+        ["CREATE", "EMPLOYEE", "Created onboarding profile for Avery Chen"],
+        ["UPDATE", "EMPLOYEE", "Updated Engineering performance review cycle"],
+        ["VIEW", "REPORT", "Viewed payroll distribution report"],
+        ["CREATE", "MESSAGE", "Posted team announcement for Q2 planning"],
+        ["UPDATE", "SETTINGS", "Refined role-based access settings"],
+        ["VIEW", "DASHBOARD", "Reviewed workforce analytics dashboard"],
+        ["CREATE", "REPORT", "Generated department headcount summary"],
+        ["LOGIN", "USER", "Demo workspace prepared"],
+      ];
+
+      await ActivityLog.insertMany(actions.map(([action, resource, description]) => ({
+        user: demoAdmin._id,
+        action,
+        resource,
+        resourceId: demoAdmin._id,
+        details: {
+          description,
+          targetName: "Demo Workspace",
+          targetId: demoAdmin._id,
+        },
+        ipAddress: "demo-session",
+        userAgent: "Demo seed",
+        status: "SUCCESS",
+      })));
+    }
+
+    return demoAdmin;
   }
 
   async updateProfile(userId, updateData) {

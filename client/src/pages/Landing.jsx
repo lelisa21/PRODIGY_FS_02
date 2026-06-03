@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import {
   FiArrowRight,
+  FiBriefcase,
   FiUsers,
   FiTrendingUp,
   FiShield,
@@ -11,6 +13,7 @@ import {
   FiPlay,
   FiPause,
   FiChevronDown,
+  FiCheckCircle,
 } from "react-icons/fi";
 import Button from "../components/common/Button";
 import MagneticButton from "../components/animations/MagneticButton";
@@ -20,9 +23,13 @@ import ParticleWave from "../components/animations/ParticleWave";
 import FloatingElements from "../components/animations/FloatingElements";
 import AnimatedBackground3D from "../components/animations/AnimatedBackground3D";
 import UnifiedRope3D from "../components/animations/UnifiedRope3D";
+import { useAuthContext } from "../context/AuthContext";
+import Footer from "../components/layout/Footer";
 
 const Landing = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const { demoLogin } = useAuthContext();
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll();
   const scale = useSpring(useTransform(scrollYProgress, [0, 1], [1, 1.2]), {
@@ -98,6 +105,19 @@ const Landing = () => {
     },
   ];
 
+  const platformHighlights = [
+    "One-click demo login with seeded workforce data",
+    "Role-based dashboards, employee profiles, audit logs, and reports",
+    "Express, MongoDB, JWT auth, Socket.IO, React Query, Zustand, and Vite",
+    "Security middleware, validation, rate limiting, and production checks",
+  ];
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+    await demoLogin();
+    setIsDemoLoading(false);
+  };
+
   //   const stats = [
   //     { value: "1000+", label: "Active Users", icon: <FiUsers /> },
   //     { value: "50+", label: "Enterprise Clients", icon: <FiAward /> },
@@ -106,6 +126,17 @@ const Landing = () => {
   //   ];
 
   return (
+    <>
+    <Helmet>
+      <title>GreatTeam EMS | Production-Ready Full-Stack Employee Management</title>
+      <meta
+        name="description"
+        content="Explore GreatTeam EMS, a production-ready full-stack employee management platform with one-click demo login, workforce analytics, RBAC, audit logs, reports, and real-time messaging."
+      />
+      <meta property="og:title" content="GreatTeam EMS | Platform Demo" />
+      <meta property="og:description" content="One-click demo of a production-grade React, Express, MongoDB, and Socket.IO employee management platform." />
+      <meta property="og:type" content="website" />
+    </Helmet>
     <div className="min-h-screen bg-linear-to-br from-secondary-50 to-white overflow-hidden">
       {/* Animated Backgrounds */}
 
@@ -137,6 +168,7 @@ const Landing = () => {
           animate={{ opacity: 1 }}
           className="absolute bottom-8 right-8 z-20 p-3 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all"
           onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+          aria-label={isVideoPlaying ? "Pause background video" : "Play background video"}
         >
           {isVideoPlaying ? (
             <FiPause className="text-white" />
@@ -159,12 +191,12 @@ const Landing = () => {
               className="inline-block px-4 py-2 rounded-full bg-primary-500/10 backdrop-blur-sm border border-primary-500/20 mb-6"
             >
               <span className="text-primary-500 text-sm font-medium">
-                ✨ The Future of Workforce Management
+                Production-ready workforce management platform
               </span>
             </motion.div>
 
             <TextReveal
-              text="Transform Your Workforce Management"
+              text="GreatTeam Employee Management System"
               className="text-4xl sm:text-6xl md:text-7xl font-bold text-secondary-900 mb-6"
               delay={0.3}
             />
@@ -175,8 +207,8 @@ const Landing = () => {
               transition={{ delay: 0.6 }}
               className="text-xl text-secondary-600  mx-auto mb-10"
             >
-              Enterprise-grade employee management system with AI-powered
-              insights, real-time analytics, and seamless collaboration tools.
+              A production-minded HR platform with RBAC, analytics, audit
+              activity, employee operations, reports, and real-time messaging.
             </motion.p>
 
             <motion.div
@@ -185,12 +217,14 @@ const Landing = () => {
               transition={{ delay: 0.9 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Link to="/register">
-                <RippleButton className="px-8 py-4 bg-linear-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all">
-                  Get Started Free
-                  <FiArrowRight className="inline ml-2" />
-                </RippleButton>
-              </Link>
+              <RippleButton
+                onClick={handleDemoLogin}
+                disabled={isDemoLoading}
+                className="px-8 py-4 bg-linear-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all disabled:opacity-70"
+              >
+                {isDemoLoading ? "Loading Demo..." : "Try Demo"}
+                <FiBriefcase className="inline ml-2" />
+              </RippleButton>
               <Link to="/login">
                 <MagneticButton className="px-8 py-4 bg-white border-2 border-primary-500 text-primary-600 rounded-xl font-semibold text-lg hover:bg-primary-50 transition-all">
                   Sign In
@@ -231,6 +265,61 @@ const Landing = () => {
         >
           <FiChevronDown className="text-secondary-400 text-2xl" />
         </motion.div>
+      </section>
+
+      <section className="relative py-20 px-4 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-10 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <p className="text-sm font-semibold uppercase tracking-wider text-primary-600 mb-3">
+              Explore the platform instantly
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-900 mb-4">
+              Try a complete workspace without creating an account.
+            </h2>
+            <p className="text-lg text-secondary-600 mb-6">
+              The demo account skips registration, seeds a realistic company
+              dataset, and opens directly into the dashboards and workflows that
+              make workforce operations easier to manage.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                type="button"
+                onClick={handleDemoLogin}
+                isLoading={isDemoLoading}
+                icon={<FiBriefcase />}
+                size="lg"
+              >
+                Launch Demo
+              </Button>
+              <Link to="/about-project">
+                <Button type="button" variant="outline" size="lg" icon={<FiArrowRight />} iconPosition="right">
+                  Technical Overview
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          >
+            {platformHighlights.map((highlight) => (
+              <div
+                key={highlight}
+                className="flex gap-3 rounded-lg border border-secondary-200 bg-secondary-50 p-4"
+              >
+                <FiCheckCircle className="mt-1 shrink-0 text-success" />
+                <p className="text-secondary-700">{highlight}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -399,7 +488,10 @@ const Landing = () => {
           </motion.div>
         </div>
       </section>
+
+      <section><Footer /> </section>
     </div>
+    </>
   );
 };
 
